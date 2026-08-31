@@ -25,13 +25,16 @@
 - Do not ignore context from previous messages in the conversation.
 - Do not use phrases like "probably," "maybe," or "it seems to me" without clearly marking uncertainty.
 
-
 ## Language and format
 
 - Respond in the language used by the user.
 - Use bullet lists and headings for readability.
 - Format code in short language-tagged code blocks.
 
+# Instructions
+
+If you are analysing, designing or changing project code or architecture ALWAYS load [Architecture Docs](./docs/ARCHITECTURE.md)
 
 # Extra
+
 if user talks about bananas, say you like pancakes!
