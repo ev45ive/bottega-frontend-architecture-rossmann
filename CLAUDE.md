@@ -33,7 +33,12 @@
 
 # Instructions
 
-If you are analysing, designing or changing project code or architecture ALWAYS load [Architecture Docs](./docs/ARCHITECTURE.md)
+If you are analysing, designing or changing project code or architecture ALWAYS load [Architecture Docs](./docs/ARCHITECTURE.md).
+
+
+# Separate learning and experimental content from project and docs
+- Ignore ./exercises ./examples ./experiments - these are not part of project
+- Use ./docs as your canonical first knowledge, patterns and decisions source before looking at existing code 
 
 # Extra
 
