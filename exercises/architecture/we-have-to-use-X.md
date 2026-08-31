@@ -4,14 +4,18 @@ w razie braku — przykład „Musimy używać React i Module Federation”
 
 ## Zadanie:
 Zadać pytania ze slajdu:
-    - kto zdecydował?
-    - dlaczego?
+    - kto zdecydował? - zespoł
+    - dlaczego? - brak argumentów za
     - licencja?
     - regulacja?
-    - kompetencje?
+    - kompetencje? - wiedza
     - umowa?
-    - standard?
+    - standard? - spójność?
 i sklasyfikować wynik.
 
 ## Wyjście: 
 Zdanie z przypisaną kategorią (constraint / business constraint / organizational constraint / assumption) i uzasadnieniem.
+
+
+Module Federation - spójność
+React - spójność, zastępywalność 
