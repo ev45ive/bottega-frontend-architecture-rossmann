@@ -12,13 +12,24 @@
 
 # Potencjalne konflikty wymagań?
 
+Marketing <> Legal
+Markting <> finanse
+E-Commerce <> Logistyka
 
 # Macierz interested / influence
 
 1) High influence / High interest
+ - E-commerce / Product Owner
 
 2) High influence / Low interest
+ - Compliance / Legal 
 
 3) Low influence / High interest
+ - Obsługa klienta
+ - Magazyn / operacje lokalne
+ - Zespół sprzedaży / customer advisors
 
 4) Low influence / Low interest
+ - Zewnętrzni partnerzy pomocniczy
+ - Użytkownicy okazjonalni
+ - Działy niezaangażowane w proces end-to-end
