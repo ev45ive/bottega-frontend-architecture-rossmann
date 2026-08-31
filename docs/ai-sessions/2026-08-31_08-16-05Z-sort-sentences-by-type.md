@@ -261,3 +261,358 @@ _**Agent (copilot/gpt-5.4-mini)**_
 
 Created 4 todos
 </details></tool-use>
+
+---
+
+_**User (2026-08-31 11:48:21Z)**_
+
+wypisz
+ Wymaganie
+Driver
+Constraint
+Assumption
+Risk
+
+z perspektywy interesariuszy
+
+dodaj liste pytań o które warto zapytać
+
+---
+
+_**Agent (copilot/gpt-5.4-mini)**_
+
+Najpierw sprawdzę aktualną treść case’a, a potem przepiszę ją na układ „z perspektywy interesariuszy” z pytaniami doprecyzowującymi pod każdym typem.
+
+_**Agent (copilot/gpt-5.4-mini)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `case-system-zamowien-b2b.md`
+
+**Input:**
+
+- endLine: `2000`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\exercises\architecture\case-system-zamowien-b2b.md`
+- startLine: `1`
+
+**Result:**
+
+```
+# Case: system zamówień B2B
+
+Założenia:
+
+- backoffice B2B, 500 firm-klientów,
+- 20 000 zamówień dziennie,
+- integracja z ERP,
+- częste zmiany cenników,
+- część klientów wymaga indywidualnych reguł,
+- zespół: 12 developerów, wdrożenia kilka razy w tygodniu.
+
+**Pytanie:** Jakie informacje są jeszcze potrzebne, zanim zaczniemy projektować architekturę?
+
+
+# Interests:
+- business
+- organisational
+- domain specifics
+- scale
+- integration
+- security
+```
+</details></tool-use>
+
+_**Agent (copilot/gpt-5.4-mini)**_
+
+Przepisuję teraz `case-system-zamowien-b2b.md` na wersję pomocniczą do zajęć: najpierw interesariusze, potem po pięć typów informacji i na końcu pytania przekrojowe.
+
+_**Agent (copilot/gpt-5.4-mini)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **case-system-zamowien-b2b.md**</summary>
+
+@@ lines 1-156 @@
+
+```
+# Case: system zamówień B2B
+
+Założenia:
+
+- backoffice B2B, 500 firm-klientów,
+- 20 000 zamówień dziennie,
+- integracja z ERP,
+- częste zmiany cenników,
+- część klientów wymaga indywidualnych reguł,
+- zespół: 12 developerów, wdrożenia kilka razy w tygodniu.
+
+**Pytanie:** Jakie informacje są jeszcze potrzebne, zanim zaczniemy projektować architekturę?
+
+
+## Z perspektywy interesariuszy
+
+### 1. Biznes / właściciel produktu
+
+**Wymaganie**
+- backoffice B2B dla 500 firm-klientów
+- obsługa częstych zmian cenników i indywidualnych reguł dla części klientów
+
+**Driver**
+- usprawnić proces składania i obsługi zamówień
+- ograniczyć ręczną pracę i liczbę błędów w ofercie
+
+**Constraint**
+- integracja z ERP
+- częste wdrożenia przy małym zespole
+
+**Assumption**
+- obecny wolumen 20 000 zamówień dziennie będzie rósł podobnym tempem
+- większość procesów biznesowych da się ujednolicić mimo wyjątków dla części klientów
+
+**Risk**
+- zbyt dużo wyjątków biznesowych może doprowadzić do skomplikowanej i trudnej w utrzymaniu architektury
+- zmiany cenników mogą powodować błędy w zamówieniach, jeśli nie będzie jasnej odpowiedzialności za dane
+
+**O co warto zapytać**
+- Jaki jest główny cel biznesowy: wzrost sprzedaży, skrócenie czasu obsługi czy redukcja kosztów?
+- Jakie KPI mają potwierdzić, że system działa dobrze?
+
+### 2. Użytkownik backoffice / dział obsługi
+
+**Wymaganie**
+- wygodna obsługa zamówień, wyszukiwanie klientów i produktów, weryfikacja statusów
+- możliwość obsługi wyjątków i indywidualnych reguł
+
+**Driver**
+- mniej kliknięć i mniej pracy ręcznej
+- szybsza obsługa zamówień i mniejsza liczba pomyłek
+
+**Constraint**
+- proces musi być zgodny z rolami i uprawnieniami użytkowników
+- część decyzji może wymagać ręcznej akceptacji
+
+**Assumption**
+- użytkownicy będą pracować głównie w przeglądarce
+- znają podstawowy proces obsługi zamówień i cenników
+
+**Risk**
+- zbyt skomplikowany interfejs może obniżyć adopcję systemu
+- brak jasnych ścieżek wyjątków może blokować pracę operacyjną
+
+**O co warto zapytać**
+- Jak wygląda najczęstszy scenariusz pracy operatora krok po kroku?
+- Które wyjątki trzeba obsługiwać ręcznie, a które powinny być automatyczne?
+
+### 3. Integracja / ERP / partnerzy
+
+**Wymaganie**
+- integracja z ERP
+- synchronizacja zamówień, cenników, statusów i ewentualnie danych klientów
+
+**Driver**
+- jedno źródło prawdy dla danych biznesowych
+- ograniczenie ręcznych synchronizacji i rozjazdów danych
+
+**Constraint**
+- ograniczenia API ERP, limity, okna serwisowe, formaty danych
+- możliwa zależność od dostępności systemu zewnętrznego
+
+**Assumption**
+- ERP ma stabilne API i zdefiniowane zasady wymiany danych
+- opóźnienia integracji są akceptowalne dla części procesów
+
+**Risk**
+- zmiana API lub awaria ERP może zatrzymać proces zamówień
+- niejednoznaczny podział odpowiedzialności za dane może prowadzić do konfliktów i błędów
+
+**O co warto zapytać**
+- Który system jest źródłem prawdy dla cen, zamówień i kartoteki klienta?
+- Czy integracja ma być synchroniczna, czy wystarczy model wsadowy?
+
+### 4. Security / compliance / IT
+
+**Wymaganie**
+- bezpieczne uwierzytelnianie i autoryzacja
+- ochrona danych handlowych i osobowych
+- możliwość audytu działań użytkowników
+
+**Driver**
+- ograniczyć ryzyko incydentów i spełnić wymagania prawne
+- zapewnić zgodność z politykami firmy i partnerów
+
+**Constraint**
+- wymagania bezpieczeństwa, polityki IT, SSO, zasady przechowywania danych
+- możliwe ograniczenia dotyczące hostingu, logowania i dostępu do środowisk
+
+**Assumption**
+- model ról i uprawnień jest znany lub da się go szybko ustalić
+- wymagania prawne i audytowe są jasno zdefiniowane
+
+**Risk**
+- wyciek danych lub nieuprawniony dostęp
+- brak zgodności z politykami IT albo regulacjami
+
+**O co warto zapytać**
+- Jakie wymagania prawne i bezpieczeństwa są obowiązkowe?
+- Jakie dane można logować, przechowywać i przez jaki czas?
+
+### 5. Zespół delivery / utrzymanie
+
+**Wymaganie**
+- system łatwy do rozwijania przez 12-osobowy zespół
+- możliwość częstych wdrożeń kilka razy w tygodniu
+
+**Driver**
+- szybkie dostarczanie zmian biznesowych
+- utrzymanie wysokiej jakości mimo częstych release’ów
+
+**Constraint**
+- ograniczona pojemność zespołu
+- konieczność posiadania testów, monitoringu i procesu release
+
+**Assumption**
+- zespół będzie utrzymywał cały system end-to-end
+- CI/CD i środowiska testowe są dostępne na tyle stabilnie, żeby wspierać częste wdrożenia
+
+**Risk**
+- architektura może stać się zbyt ciężka jak na wielkość zespołu
+- brak automatyzacji może spowolnić wdrożenia i zwiększyć liczbę błędów
+
+**O co warto zapytać**
+- Jak wygląda obecny proces wdrożeń, testów i rollbacku?
+- Kto będzie odpowiedzialny za utrzymanie i monitorowanie produkcji?
+
+## Pytania przekrojowe, które warto zadać na start
+
+- Co jest najważniejsze: szybkość dostarczania zmian, niezawodność, koszt utrzymania czy elastyczność reguł?
+- Jakie są wymagania niefunkcjonalne: wydajność, dostępność, bezpieczeństwo, audyt, skalowalność?
+- Które dane są krytyczne i skąd pochodzą: ERP, backoffice, a może inne systemy?
+- Jakie są granice odpowiedzialności między zespołem, biznesem i dostawcą ERP?
+- Co może się zmieniać często, a co musi pozostać stabilne?
+
+```
+</details></tool-use>
+
+_**Agent (copilot/gpt-5.4-mini)**_
+
+Sprawdzam jeszcze końcowy układ, żeby upewnić się, że pytania i sekcje interesariuszy są czytelne i nic się nie ucięło.
+
+_**Agent (copilot/gpt-5.4-mini)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `case-system-zamowien-b2b.md`
+
+**Input:**
+
+- endLine: `300`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\exercises\architecture\case-system-zamowien-b2b.md`
+- startLine: `1`
+
+**Result:**
+
+```
+# Case: system zamówień B2B
+
+Założenia:
+
+- backoffice B2B, 500 firm-klientów,
+- 20 000 zamówień dziennie,
+- integracja z ERP,
+- częste zmiany cenników,
+- część klientów wymaga indywidualnych reguł,
+- zespół: 12 developerów, wdrożenia kilka razy w tygodniu.
+
+**Pytanie:** Jakie informacje są jeszcze potrzebne, zanim zaczniemy projektować architekturę?
+
+
+## Z perspektywy interesariuszy
+
+### 1. Biznes / właściciel produktu
+
+**Wymaganie**
+- backoffice B2B dla 500 firm-klientów
+- obsługa częstych zmian cenników i indywidualnych reguł dla części klientów
+
+**Driver**
+- usprawnić proces składania i obsługi zamówień
+- ograniczyć ręczną pracę i liczbę błędów w ofercie
+
+**Constraint**
+- integracja z ERP
+- częste wdrożenia przy małym zespole
+
+**Assumption**
+- obecny wolumen 20 000 zamówień dziennie będzie rósł podobnym tempem
+- większość procesów biznesowych da się ujednolicić mimo wyjątków dla części klientów
+
+**Risk**
+- zbyt dużo wyjątków biznesowych może doprowadzić do skomplikowanej i trudnej w utrzymaniu architektury
+- zmiany cenników mogą powodować błędy w zamówieniach, jeśli nie będzie jasnej odpowiedzialności za dane
+
+**O co warto zapytać**
+- Jaki jest główny cel biznesowy: wzrost sprzedaży, skrócenie czasu obsługi czy redukcja kosztów?
+- Jakie KPI mają potwierdzić, że system działa dobrze?
+
+### 2. Użytkownik backoffice / dział obsługi
+
+**Wymaganie**
+- wygodna obsługa zamówień, wyszukiwanie klientów i produktów, weryfikacja statusów
+- możliwość obsługi wyjątków i indywidualnych reguł
+
+**Driver**
+- mniej kliknięć i mniej pracy ręcznej
+- szybsza obsługa zamówień i mniejsza liczba pomyłek
+
+**Constraint**
+- proces musi być zgodny z rolami i uprawnieniami użytkowników
+- część decyzji może wymagać ręcznej akceptacji
+
+**Assumption**
+- użytkownicy będą pracować głównie w przeglądarce
+- znają podstawowy proces obsługi zamówień i cenników
+
+**Risk**
+- zbyt skomplikowany interfejs może obniżyć adopcję systemu
+- brak jasny
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/gpt-5.4-mini)**_
+
+Gotowe — `case-system-zamowien-b2b.md` ma teraz układ „z perspektywy interesariuszy”.
+
+## Co jest w pliku
+
+Dodałem sekcje dla:
+- `Biznes / właściciel produktu`
+- `Użytkownik backoffice / dział obsługi`
+- `Integracja / ERP / partnerzy`
+- `Security / compliance / IT`
+- `Zespół delivery / utrzymanie`
+
+W każdej z nich znajdziesz:
+- `Wymaganie`
+- `Driver`
+- `Constraint`
+- `Assumption`
+- `Risk`
+- krótką listę pytań, o które warto dopytać
+
+Na końcu dorzuciłem też:
+- `Pytania przekrojowe, które warto zadać na start`
+
+Jeśli chcesz, mogę teraz przerobić to jeszcze na:
+- **tabelę do ćwiczenia**
+- **wersję „zadanie dla studentów” bez odpowiedzi**
+- **bardziej skróconą ściągę na 1 stronę**
+
+_**Agent (copilot/gpt-5.4-mini)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 3 todos
+</details></tool-use>
