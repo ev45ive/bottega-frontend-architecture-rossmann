@@ -1,12 +1,11 @@
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
+  "$schema": "../../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../../.oxlintrc.json"],
   "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }],
     "no-restricted-imports": [
       "error",
       {
+        "paths": ["@/modules/product-pricing", "@/modules/platform"],
         "patterns": [
           {
             "regex": "^@/modules/[^/]+/.+",

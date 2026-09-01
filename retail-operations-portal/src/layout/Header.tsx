@@ -1,6 +1,5 @@
-import { GlobalSearch } from "@/components/GlobalSearch";
-import { NotificationBell } from "@/components/NotificationBell";
-import { UserMenu } from "@/components/UserMenu";
+import { GlobalSearch } from "@/shared/components/GlobalSearch";
+import { NotificationBell, UserMenu } from "@/modules/platform";
 
 export function Header() {
   return (

@@ -1,16 +1,15 @@
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
+  "$schema": "../../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../../.oxlintrc.json"],
   "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }],
     "no-restricted-imports": [
       "error",
       {
+        "paths": ["@/modules/product-catalog", "@/modules/product-pricing", "@/modules/sales-fulfilment"],
         "patterns": [
           {
             "regex": "^@/modules/[^/]+/.+",
-            "message": "Deep imports into another module's internals are forbidden. Import only the module's public API (e.g. @/modules/product-catalog)."
+            "message": "Deep imports into another module's internals are forbidden. Import only the module's public API (e.g. @/modules/platform)."
           },
           {
             "regex": "^(\\.\\./)+modules/",
