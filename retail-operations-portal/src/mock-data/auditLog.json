@@ -1,0 +1,14 @@
+[
+  { "id": "audit-1", "entityType": "promotion", "entityId": "promo-8", "action": "activated", "actor": "Jan Kowalski", "timestamp": "2026-08-25T10:00:00" },
+  { "id": "audit-2", "entityType": "promotion", "entityId": "promo-8", "action": "approved", "actor": "Jan Kowalski", "timestamp": "2026-08-24T15:20:00" },
+  { "id": "audit-3", "entityType": "promotion", "entityId": "promo-9", "action": "activated", "actor": "Jan Kowalski", "timestamp": "2026-08-20T09:00:00" },
+  { "id": "audit-4", "entityType": "promotion", "entityId": "promo-7", "action": "validation_failed", "actor": "system", "timestamp": "2026-08-26T16:40:00", "details": "Produkt p-4 jest nieaktywny" },
+  { "id": "audit-5", "entityType": "promotion", "entityId": "promo-6", "action": "validation_passed", "actor": "system", "timestamp": "2026-08-27T09:00:00" },
+  { "id": "audit-6", "entityType": "order", "entityId": "ord-4", "action": "cancelled", "actor": "Anna Nowak", "timestamp": "2026-08-15T14:22:00" },
+  { "id": "audit-7", "entityType": "order", "entityId": "ord-2", "action": "approved", "actor": "Piotr Wiśniewski", "timestamp": "2026-08-21T10:05:00" },
+  { "id": "audit-8", "entityType": "return", "entityId": "ret-2", "action": "refunded", "actor": "Katarzyna Zielińska", "timestamp": "2026-08-16T12:00:00" },
+  { "id": "audit-9", "entityType": "product", "entityId": "p-4", "action": "deactivated", "actor": "Anna Nowak", "timestamp": "2026-08-05T08:30:00" },
+  { "id": "audit-10", "entityType": "supplier", "entityId": "sup-6", "action": "created", "actor": "Jan Kowalski", "timestamp": "2026-08-10T11:15:00" },
+  { "id": "audit-11", "entityType": "promotion", "entityId": "promo-10", "action": "archived", "actor": "Katarzyna Zielińska", "timestamp": "2026-04-15T09:00:00" },
+  { "id": "audit-12", "entityType": "pricingRule", "entityId": "pr-4", "action": "deactivated", "actor": "Piotr Wiśniewski", "timestamp": "2026-07-30T13:45:00" }
+]

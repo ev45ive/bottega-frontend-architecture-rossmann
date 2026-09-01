@@ -1,0 +1,8 @@
+[
+  { "id": "cat-1", "name": "Napoje" },
+  { "id": "cat-2", "name": "Nabiał" },
+  { "id": "cat-3", "name": "Pieczywo" },
+  { "id": "cat-4", "name": "Chemia domowa" },
+  { "id": "cat-5", "name": "Słodycze" },
+  { "id": "cat-6", "name": "Higiena" }
+]

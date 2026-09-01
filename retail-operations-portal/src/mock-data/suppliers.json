@@ -1,0 +1,8 @@
+[
+  { "id": "sup-1", "name": "Beverages Sp. z o.o.", "contactEmail": "kontakt@beverages.pl", "country": "Polska", "status": "active" },
+  { "id": "sup-2", "name": "Dairy Fresh S.A.", "contactEmail": "biuro@dairyfresh.pl", "country": "Polska", "status": "active" },
+  { "id": "sup-3", "name": "PiekarniaPL", "contactEmail": "zamowienia@piekarniapl.pl", "country": "Polska", "status": "active" },
+  { "id": "sup-4", "name": "CleanHome Distribution", "contactEmail": "sales@cleanhome.eu", "country": "Niemcy", "status": "inactive" },
+  { "id": "sup-5", "name": "SweetCo", "contactEmail": "hello@sweetco.pl", "country": "Polska", "status": "active" },
+  { "id": "sup-6", "name": "HygienePlus", "contactEmail": "office@hygieneplus.pl", "country": "Polska", "status": "active" }
+]

@@ -1,0 +1,8 @@
+[
+  { "id": "pr-1", "name": "Rabat 10% - Napoje", "type": "percentage", "value": 10, "categoryId": "cat-1", "active": true },
+  { "id": "pr-2", "name": "Rabat 15% - Słodycze", "type": "percentage", "value": 15, "categoryId": "cat-5", "active": true },
+  { "id": "pr-3", "name": "Cena stała -2zł", "type": "fixed", "value": 2, "active": true },
+  { "id": "pr-4", "name": "Bundle 3x2 - Nabiał", "type": "bundle", "value": 0, "categoryId": "cat-2", "active": false },
+  { "id": "pr-5", "name": "Rabat 5% - Chemia domowa", "type": "percentage", "value": 5, "categoryId": "cat-4", "active": true },
+  { "id": "pr-6", "name": "Rabat 20% - Wyprzedaż pieczywa", "type": "percentage", "value": 20, "categoryId": "cat-3", "active": false }
+]

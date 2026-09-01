@@ -1,0 +1,14 @@
+[
+  { "id": "ord-1", "orderNumber": "ZAM-1001", "customerName": "Jan Kowalski", "total": 128.5, "status": "new", "createdAt": "2026-08-20" },
+  { "id": "ord-2", "orderNumber": "ZAM-1002", "customerName": "Anna Nowak", "total": 64.2, "status": "approved", "createdAt": "2026-08-21" },
+  { "id": "ord-3", "orderNumber": "ZAM-1003", "customerName": "Piotr Wiśniewski", "total": 302.0, "status": "shipped", "createdAt": "2026-08-18" },
+  { "id": "ord-4", "orderNumber": "ZAM-1004", "customerName": "Katarzyna Zielińska", "total": 45.99, "status": "cancelled", "createdAt": "2026-08-15" },
+  { "id": "ord-5", "orderNumber": "ZAM-1005", "customerName": "Tomasz Lewandowski", "total": 210.75, "status": "new", "createdAt": "2026-08-24" },
+  { "id": "ord-6", "orderNumber": "ZAM-1006", "customerName": "Magdalena Dąbrowska", "total": 89.0, "status": "approved", "createdAt": "2026-08-23" },
+  { "id": "ord-7", "orderNumber": "ZAM-1007", "customerName": "Michał Wójcik", "total": 156.4, "status": "shipped", "createdAt": "2026-08-12" },
+  { "id": "ord-8", "orderNumber": "ZAM-1008", "customerName": "Agnieszka Kamińska", "total": 32.1, "status": "new", "createdAt": "2026-08-25" },
+  { "id": "ord-9", "orderNumber": "ZAM-1009", "customerName": "Krzysztof Kaczmarek", "total": 275.3, "status": "approved", "createdAt": "2026-08-19" },
+  { "id": "ord-10", "orderNumber": "ZAM-1010", "customerName": "Ewa Piotrowska", "total": 58.6, "status": "cancelled", "createdAt": "2026-08-17" },
+  { "id": "ord-11", "orderNumber": "ZAM-1011", "customerName": "Paweł Grabowski", "total": 199.99, "status": "shipped", "createdAt": "2026-08-10" },
+  { "id": "ord-12", "orderNumber": "ZAM-1012", "customerName": "Joanna Zając", "total": 74.4, "status": "new", "createdAt": "2026-08-26" }
+]

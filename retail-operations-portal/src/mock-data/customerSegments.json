@@ -1,0 +1,6 @@
+[
+  { "id": "seg-1", "name": "Klienci VIP", "description": "Najwyższa wartość zamówień w ostatnich 12 miesiącach", "criteria": "totalSpend > 5000 PLN / rok" },
+  { "id": "seg-2", "name": "Nowi klienci", "description": "Pierwsze zamówienie w ciągu ostatnich 30 dni", "criteria": "firstOrderDate < 30 dni" },
+  { "id": "seg-3", "name": "Rodziny z dziećmi", "description": "Regularne zakupy w kategoriach dziecięcych i spożywczych", "criteria": "kategorie: nabiał, słodycze, higiena" },
+  { "id": "seg-4", "name": "Kupujący hurtowo", "description": "Zamówienia powyżej 50 sztuk jednego produktu", "criteria": "avgOrderQty > 50" }
+]

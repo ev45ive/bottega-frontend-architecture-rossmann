@@ -1,0 +1,113 @@
+[
+  {
+    "id": "promo-1",
+    "name": "Letnie orzeźwienie",
+    "status": "draft",
+    "productIds": ["p-1", "p-2", "p-3"],
+    "pricingRuleIds": ["pr-1"],
+    "startDate": "2026-09-01",
+    "endDate": "2026-09-14",
+    "createdBy": "Anna Nowak"
+  },
+  {
+    "id": "promo-2",
+    "name": "Słodki tydzień",
+    "status": "draft",
+    "productIds": ["p-17", "p-18", "p-19"],
+    "pricingRuleIds": ["pr-2"],
+    "startDate": "2026-09-05",
+    "endDate": "2026-09-12",
+    "createdBy": "Piotr Wiśniewski"
+  },
+  {
+    "id": "promo-3",
+    "name": "Czyste mieszkanie",
+    "status": "draft",
+    "productIds": ["p-13", "p-14", "p-15", "p-16"],
+    "pricingRuleIds": ["pr-5"],
+    "startDate": "2026-09-10",
+    "endDate": "2026-09-20",
+    "createdBy": "Anna Nowak"
+  },
+  {
+    "id": "promo-4",
+    "name": "Nabiał na dobry początek dnia",
+    "status": "pending_validation",
+    "productIds": ["p-5", "p-6", "p-7", "p-8"],
+    "pricingRuleIds": ["pr-4"],
+    "startDate": "2026-09-03",
+    "endDate": "2026-09-10",
+    "createdBy": "Katarzyna Zielińska"
+  },
+  {
+    "id": "promo-5",
+    "name": "Świeże pieczywo -20%",
+    "status": "pending_validation",
+    "productIds": ["p-9", "p-10", "p-11", "p-12"],
+    "pricingRuleIds": ["pr-6"],
+    "startDate": "2026-08-29",
+    "endDate": "2026-09-05",
+    "createdBy": "Piotr Wiśniewski"
+  },
+  {
+    "id": "promo-6",
+    "name": "Higiena w dobrej cenie",
+    "status": "pending_approval",
+    "productIds": ["p-21", "p-22", "p-23", "p-24"],
+    "pricingRuleIds": ["pr-3"],
+    "startDate": "2026-09-01",
+    "endDate": "2026-09-15",
+    "createdBy": "Anna Nowak",
+    "validation": { "passed": true, "issues": [], "checkedAt": "2026-08-27" }
+  },
+  {
+    "id": "promo-7",
+    "name": "Napoje na jesień",
+    "status": "pending_approval",
+    "productIds": ["p-1", "p-4"],
+    "pricingRuleIds": ["pr-1"],
+    "startDate": "2026-09-15",
+    "endDate": "2026-09-30",
+    "createdBy": "Katarzyna Zielińska",
+    "validation": { "passed": false, "issues": ["Produkt p-4 jest nieaktywny"], "checkedAt": "2026-08-26" }
+  },
+  {
+    "id": "promo-8",
+    "name": "Back to school - słodycze",
+    "status": "active",
+    "productIds": ["p-17", "p-19"],
+    "pricingRuleIds": ["pr-2"],
+    "startDate": "2026-08-25",
+    "endDate": "2026-09-08",
+    "createdBy": "Piotr Wiśniewski",
+    "validation": { "passed": true, "issues": [], "checkedAt": "2026-08-23" },
+    "approvedBy": "Jan Kowalski",
+    "activatedAt": "2026-08-25"
+  },
+  {
+    "id": "promo-9",
+    "name": "Chemia domowa - start jesieni",
+    "status": "active",
+    "productIds": ["p-13", "p-15"],
+    "pricingRuleIds": ["pr-5"],
+    "startDate": "2026-08-20",
+    "endDate": "2026-09-03",
+    "createdBy": "Anna Nowak",
+    "validation": { "passed": true, "issues": [], "checkedAt": "2026-08-18" },
+    "approvedBy": "Jan Kowalski",
+    "activatedAt": "2026-08-20"
+  },
+  {
+    "id": "promo-10",
+    "name": "Wiosenne porządki",
+    "status": "archived",
+    "productIds": ["p-13", "p-14", "p-16"],
+    "pricingRuleIds": ["pr-5"],
+    "startDate": "2026-04-01",
+    "endDate": "2026-04-14",
+    "createdBy": "Katarzyna Zielińska",
+    "validation": { "passed": true, "issues": [], "checkedAt": "2026-03-28" },
+    "approvedBy": "Jan Kowalski",
+    "activatedAt": "2026-04-01"
+  }
+]

@@ -1,0 +1,6 @@
+[
+  { "key": "promotion-activation-v2", "label": "Nowy panel aktywacji promocji", "enabled": false },
+  { "key": "global-search", "label": "Wyszukiwarka globalna w headerze", "enabled": true },
+  { "key": "returns-auto-approve", "label": "Automatyczna akceptacja zwrotów poniżej 50 zł", "enabled": false },
+  { "key": "audit-log-details", "label": "Szczegóły techniczne w dzienniku zdarzeń", "enabled": true }
+]

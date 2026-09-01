@@ -1,0 +1,6 @@
+[
+  { "id": "user-1", "name": "Jan Kowalski", "email": "jan.kowalski@retailops.pl", "role": "admin" },
+  { "id": "user-2", "name": "Anna Nowak", "email": "anna.nowak@retailops.pl", "role": "manager" },
+  { "id": "user-3", "name": "Piotr Wiśniewski", "email": "piotr.wisniewski@retailops.pl", "role": "manager" },
+  { "id": "user-4", "name": "Katarzyna Zielińska", "email": "katarzyna.zielinska@retailops.pl", "role": "viewer" }
+]
