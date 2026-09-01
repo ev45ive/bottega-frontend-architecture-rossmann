@@ -1,0 +1,31 @@
+# Module boundary enforcement (see docs/adr/0000-podzial-na-moduly-domenowe.md).
+# These paths gate the module boundary itself — changes need the listed owner's review,
+# not just any code owner, otherwise the boundary can be silently weakened or bypassed.
+#
+# PLACEHOLDER TEAMS: @bottega/* below are placeholders. Replace with real GitHub
+# usernames/teams before this file has any effect — CODEOWNERS silently no-ops for
+# handles that aren't actual collaborators/teams on the repo.
+
+# Root lint config — defines the no-restricted-imports module-boundary rule app-wide.
+/retail-operations-portal/.oxlintrc.json @bottega/architecture
+
+# Per-module lint overrides — must keep `extends` the root config (oxlint doesn't auto-merge).
+/retail-operations-portal/src/modules/product-catalog/.oxlintrc.json    @bottega/architecture @bottega/catalog-team
+/retail-operations-portal/src/modules/product-pricing/.oxlintrc.json   @bottega/architecture @bottega/pricing-team
+/retail-operations-portal/src/modules/sales-fulfilment/.oxlintrc.json  @bottega/architecture @bottega/sales-fulfilment-team
+/retail-operations-portal/src/modules/platform/.oxlintrc.json         @bottega/architecture @bottega/platform-team
+
+# Ambient-global guard (blocks `declare global` bypassing the import-graph lint rule).
+/retail-operations-portal/scripts/check-no-global-declarations.mjs @bottega/architecture
+
+# Wires oxlint + the guard script into `npm run lint` (the CI-enforced check).
+/retail-operations-portal/package.json @bottega/architecture
+
+# Public API surface per module — widening these needs the owning team's sign-off.
+/retail-operations-portal/src/modules/product-catalog/index.ts    @bottega/catalog-team
+/retail-operations-portal/src/modules/product-pricing/index.ts   @bottega/pricing-team
+/retail-operations-portal/src/modules/sales-fulfilment/index.ts  @bottega/sales-fulfilment-team
+/retail-operations-portal/src/modules/platform/index.ts         @bottega/platform-team
+
+# Shared code is importable by every module — new exports here bypass boundaries app-wide.
+/retail-operations-portal/src/shared/ @bottega/platform-team
