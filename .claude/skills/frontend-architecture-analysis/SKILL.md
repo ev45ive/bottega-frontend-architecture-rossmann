@@ -27,7 +27,7 @@ Do not guess the mode — always confirm it first, per project rules in [CLAUDE.
 
 ### Step 2 — Resolve report metadata (author + model)
 
-- **Autor:** run `git config user.name` and `git config user.email`. If both resolve, use `Name <email>` as the author. If either is missing/empty, ask the user for their name (via ask-questions tool) instead of guessing.
+- **Autor:** run `git config user.name` and `git config user.email`. If both resolve, use `Name <email>` as the author. If either is missing/empty, ask the user for their name (via ask-questions tool) instead of guessing. Write only the resolved value into the report (e.g. `Jan Kowalski <jan@example.com>`) — never annotate it with how it was obtained (no "(z `git config`)" or similar process notes).
 - **Model AI:** record the exact model identifier currently in use for this session (as stated in your own system context) — never a generic placeholder like "AI" or "Copilot".
 
 ### Step 3 — Gather context (depends on mode)
@@ -40,8 +40,8 @@ Do not guess the mode — always confirm it first, per project rules in [CLAUDE.
 
 Go section by section using the checklist below. For each section, note concrete evidence (file paths, line refs) — do not state conclusions you can't point to in code.
 
-1. **Kontekst i cel** — scope of this report, what triggered it, analysis mode used.
-2. **Stack technologiczny** — framework, bundler, language, major deps (routing, state, UI kit, forms/validation) — from `package.json`.
+1. **Kontekst i cel** — scope of this report, what triggered it, analysis mode used. If the project/module does not clearly document its own context or purpose (no README/ARCHITECTURE.md section, no discoverable rationale in code/comments), say so explicitly instead of inferring or guessing one.
+2. **Stack technologiczny** — framework, bundler, language, major deps (routing, state, UI kit, forms/validation) — from `package.json`. Include the npm scripts, build/dev commands and any CI/automation config found (e.g. `package.json#scripts`, `.github/workflows/*`) as an explicit list/table.
 3. **Struktura katalogów i konwencje** — folder organization (feature vs layer based), naming conventions, module boundaries.
 4. **Warstwa danych/API** — API client pattern (`src/api/*`), mocking strategy (`src/mock-data/*`), caching/fetching approach.
 5. **Zarządzanie stanem** — global store (`src/store/`), local component state, data flow patterns.
@@ -56,10 +56,16 @@ Go section by section using the checklist below. For each section, note concrete
 
 Sections not applicable to the current scope/mode are still listed in the output — mark their body with `--- POMINIĘTO ---` instead of removing the heading (see template).
 
+Within every section (2–12), keep the description of what currently exists ("Stan obecny") strictly separate from opinions, concerns and suggestions ("Uwagi") — never blend them into the same sentence/bullet. Do not describe your own analysis process (how you looked something up, which tool/command you ran, that a section was skipped because it was "out of scope") inside the report body — the report documents the codebase, not the act of analyzing it.
+
 ### Step 5 — Fill the report template
 
 Use [report template](./assets/report-template.md) as the exact skeleton. Every one of the 13 sections (+ metadata header) must appear in the output, in order, either filled in or marked `--- POMINIĘTO ---`.
 
 ### Step 6 — Check tone/format against the example
 
-Before finalizing, compare against [example report](./assets/example-report.md) — concise, evidence-based (file refs), no filler, opinions clearly marked as such.
+Before finalizing, compare against [example report](./assets/example-report.md) — concise, evidence-based (file refs), no filler, opinions clearly marked as such. Keep the format light and scannable: prefer bullet lists and tables over prose paragraphs, and use small Mermaid diagrams (top-down layout, e.g. `graph TD`) for structure/flow where a diagram communicates faster than text.
+
+### Step 7 — Confirm save path and write the file
+
+Default save location is `docs/architecture-reports/<name>.md` (create the folder if it doesn't exist). Propose a filename (e.g. `<date>_<mode-or-scope-slug>.md`) and ask the user (via ask-questions tool) to confirm this path or provide a different one before writing the report — do not save without confirmation.

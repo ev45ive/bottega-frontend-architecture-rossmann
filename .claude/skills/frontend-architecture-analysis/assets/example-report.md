@@ -7,7 +7,7 @@
 - **Data analizy:** 2026-09-01
 - **Tryb analizy:** szczegółowa (moduł: Powiadomienia / Notifications)
 - **Zakres:** `src/pages/NotificationsPage.tsx`, `src/components/NotificationBell.tsx`, `src/api/notifications.ts`, `src/mock-data/notifications.json`
-- **Autor:** Mateusz Kulesza <ev45ive@gmail.com> (z `git config user.*`)
+- **Autor:** Mateusz Kulesza <ev45ive@gmail.com>
 - **Model AI:** Claude Sonnet 4.5
 - **Powiązany wcześniejszy raport (jeśli aktualizacja):** brak (pierwsza analiza tego modułu)
 
@@ -21,15 +21,33 @@ Celem jest ocena spójności modułu powiadomień przed dodaniem obsługi powiad
 
 ## 3. Struktura katalogów i konwencje
 
-Moduł podzielony zgodnie z konwencją repo: strona w `src/pages/NotificationsPage.tsx`, komponent współdzielony `NotificationBell.tsx` w `src/components/` (używany też w `Header.tsx`), klient API w `src/api/notifications.ts`, dane mock w `src/mock-data/notifications.json`.
+**Stan obecny:**
+
+- Strona: `src/pages/NotificationsPage.tsx`
+- Komponent współdzielony: `src/components/NotificationBell.tsx` (używany też w `src/layout/Header.tsx`)
+- Klient API: `src/api/notifications.ts`
+- Dane mock: `src/mock-data/notifications.json`
+
+```mermaid
+graph TD
+    Header --> NotificationBell
+    NotificationsPage --> NotificationBell
+    NotificationBell --> notificationsApi["api/notifications.ts"]
+    NotificationsPage --> notificationsApi
+    notificationsApi --> mockData["mock-data/notifications.json"]
+```
+
+**Uwagi:** brak zastrzeżeń — podział zgodny z konwencją reszty repozytorium.
 
 ## 4. Warstwa danych/API
 
-`src/api/notifications.ts` eksportuje funkcje pobierające dane z `mock-data/notifications.json` (z symulowanym opóźnieniem przez `delay.ts`). Brak realnego klienta HTTP — cały moduł działa na mockach, co jest zgodne z resztą repo (`api/*` konsekwentnie korzysta z `mock-data/*`).
+**Stan obecny:** `src/api/notifications.ts` eksportuje funkcje pobierające dane z `mock-data/notifications.json`, z symulowanym opóźnieniem przez `delay.ts`. Brak realnego klienta HTTP — moduł działa wyłącznie na mockach, co jest spójne z pozostałymi modułami (`api/*` konsekwentnie korzysta z `mock-data/*`).
+
+**Uwagi:** brak.
 
 ## 5. Zarządzanie stanem
 
---- POMINIĘTO --- (do zweryfikowania dopiero po analizie `src/store/`, poza obecnym zakresem)
+--- POMINIĘTO ---
 
 ## 6. Routing i nawigacja
 
@@ -37,7 +55,9 @@ Moduł podzielony zgodnie z konwencją repo: strona w `src/pages/NotificationsPa
 
 ## 7. Komponenty i UI
 
-`NotificationBell.tsx` jest komponentem prezentacyjnym reużywanym w layoucie (`Header.tsx`); logika pobierania danych powinna zostać sprawdzona pod kątem duplikacji między `NotificationBell` a `NotificationsPage`.
+**Stan obecny:** `NotificationBell.tsx` jest komponentem prezentacyjnym reużywanym w layoucie (`Header.tsx`) oraz osobno pobiera dane w `NotificationsPage.tsx`.
+
+**Uwagi:** logika pobierania danych powtarza się w obu miejscach — potencjalna duplikacja do zweryfikowania.
 
 ## 8. Typowanie i jakość kodu
 
@@ -45,7 +65,9 @@ Moduł podzielony zgodnie z konwencją repo: strona w `src/pages/NotificationsPa
 
 ## 9. Testowanie
 
-Brak zidentyfikowanych testów jednostkowych dla tego modułu w trakcie tej analizy (nie potwierdzono całościowo — wymaga osobnego przeglądu).
+**Stan obecny:** brak zidentyfikowanych testów jednostkowych dla plików w zakresie tej analizy.
+
+**Uwagi:** ryzyko regresji przy planowanym przejściu na WebSocket bez pokrycia testami.
 
 ## 10. Wydajność
 
@@ -57,7 +79,9 @@ Brak zidentyfikowanych testów jednostkowych dla tego modułu w trakcie tej anal
 
 ## 12. Skalowalność i utrzymywalność
 
-Przejście z mocków na realne API/WebSocket będzie wymagało zmiany kontraktu w `src/api/notifications.ts` — punkt styku jest dobrze wyizolowany, co ułatwia migrację.
+**Stan obecny:** kontrakt danych izolowany w `src/api/notifications.ts`; przejście z mocków na realne API/WebSocket wymaga zmiany tylko w tym pliku i jego konsumentach (`NotificationBell`, `NotificationsPage`).
+
+**Uwagi:** dobra izolacja punktu styku ułatwi migrację.
 
 ## 13. Rekomendacje
 
