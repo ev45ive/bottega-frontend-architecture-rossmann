@@ -1,0 +1,27 @@
+{
+  "name": "bottega-frontend-architecture-rossmann",
+  "version": "1.0.0",
+  "description": "https://github.com/ev45ive/bottega-frontend-architecture-rossmann.git",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ev45ive/bottega-frontend-architecture-rossmann.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ev45ive/bottega-frontend-architecture-rossmann/issues"
+  },
+  "homepage": "https://github.com/ev45ive/bottega-frontend-architecture-rossmann#readme",
+  "devDependencies": {
+    "prettier": "^3.9.6"
+  }
+}
