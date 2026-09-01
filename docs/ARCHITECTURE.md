@@ -19,13 +19,15 @@ Retail Operations Portal — system back-office do obsługi produktów, zamówie
 
 # Ownership map
 
-| Krok procesu           | Domena | Zespół       | Pakiet |
-| ---------------------- | ------ | ------------ | ------ |
-| Wybór produktów        | _TBD_` | Catalog Team | _TBD_  |
-| Reguły i ceny          | _TBD_  | Pricing Team | _TBD_  |
-| Walidacja → akceptacja | _TBD_  | _TBD_        | _TBD_  |
-| Aktywacja/publikacja   | _TBD_  | _TBD_        | _TBD_  |
-| Raportowanie           | _TBD_  | _TBD_        | _TBD_  |
+| Krok procesu           | Domena                     | Zespół        | Pakiet |
+| ---------------------- | -------------------------- | ------------- | ------ |
+| Wybór produktów        | Catalog                    | Catalog Team  | _TBD_  |
+| Reguły i ceny          | Pricing & Promotions       | Pricing Team  | _TBD_  |
+| Walidacja → akceptacja | Pricing & Promotions       | Pricing Team  | _TBD_  |
+| Aktywacja/publikacja   | Pricing & Promotions       | Pricing Team  | _TBD_  |
+| Raportowanie           | Platform / Shared Services | Platform Team | _TBD_  |
+
+> Pełny podział na bounded context (14) i domeny (4) z uzasadnieniem: [docs/context-map/context-map.md](./context-map/context-map.md).
 
 # Decyzje Architektoniczne (ADR)
 
