@@ -9,7 +9,8 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@ross-org/product-catalog": ["./src/modules/product-catalog/index.ts"]
     },
 
     /* Bundler mode */

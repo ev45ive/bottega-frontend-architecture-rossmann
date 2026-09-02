@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
+      '@ross-org/product-catalog': path.resolve(import.meta.dirname, './src/modules/product-catalog/index.ts'),
     },
   },
 })

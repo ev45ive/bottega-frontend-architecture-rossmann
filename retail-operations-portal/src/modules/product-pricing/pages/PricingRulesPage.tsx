@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/compo
 import { DataTable } from "@/shared/components/DataTable";
 import { PricingRuleForm } from "../components/PricingRuleForm";
 import { listPricingRules, addPricingRule } from "../api/pricingRules";
-import { listCategoryRefs } from "@/modules/product-catalog";
+import { listCategoryRefs } from "@ross-org/product-catalog";
 import { setPricingRules, upsertPricingRule } from "../store/pricingRulesSlice";
 import { setCategoryRefs } from "../store/categoryRefsSlice";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
