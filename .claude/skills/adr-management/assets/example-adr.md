@@ -22,10 +22,15 @@ Przyjmujemy jedną bibliotekę do zarządzania stanem serwera (cache, refetch, i
 
 ## Konsekwencje
 
-- (+) Spójny wzorzec pobierania/cache'owania danych między zespołami, łatwiejszy code review.
-- (+) Częściowa awaria jednego zapytania nie blokuje reszty ekranu (izolowany stan błędu per query).
-- (–) Kolejna zależność w `package.json`, którą trzeba utrzymywać i aktualizować.
-- (–) Koszt migracji istniejących ekranów korzystających z ręcznego `useEffect`.
+Pozytywne:
+
+- Spójny wzorzec pobierania/cache'owania danych między zespołami, łatwiejszy code review.
+- Częściowa awaria jednego zapytania nie blokuje reszty ekranu (izolowany stan błędu per query).
+
+Negatywne / kompromisy:
+
+- Kolejna zależność w `package.json`, którą trzeba utrzymywać i aktualizować.
+- Koszt migracji istniejących ekranów korzystających z ręcznego `useEffect`.
 
 ## Powiązane
 

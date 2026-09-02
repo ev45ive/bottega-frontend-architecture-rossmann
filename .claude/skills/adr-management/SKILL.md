@@ -22,6 +22,23 @@ Manages Architecture Decision Records under `docs/adr/` — creating, updating, 
 - Status values: `Proponowany`, `Zaakceptowany`, `Odrzucony`, `Zastąpiony przez ADR-NNNN`, `Wycofany`.
 - Individual ADR sections (in order): `Status`, `Kontekst`, `Decyzja`, `Rozważane alternatywy`, `Konsekwencje`, `Powiązane`. See [adr-template.md](./assets/adr-template.md).
 - One ADR = one decision. ADRs are immutable once `Zaakceptowany` — a changed decision becomes a new ADR that supersedes the old one, not an edit of the old one.
+- Level of detail & style:
+  - Write at architecture/business level, not implementation level — no file names, function/variable
+    names, or specific library/framework mechanics (e.g. Redux slices) in `Kontekst`, `Decyzja`, or
+    `Konsekwencje`. That detail belongs in a separate migration/handoff doc under `docs/migrations/`,
+    linked from `Powiązane` if/when it exists — the migration doc can be created after the ADR, so
+    don't require the link to exist upfront.
+  - Domain/ubiquitous-language names (e.g. `Category`, `CategoryRef`) are fine; code-level identifiers
+    are not.
+  - If a decision establishes a pattern meant to apply to multiple future cases, state it in `Decyzja`
+    as a standing policy, not just a one-off migration — name the first concrete application
+    separately.
+  - Alternatives belong only in `Rozważane alternatywy` — never re-introduce or reference them in
+    `Decyzja` or `Konsekwencje`.
+  - Be concise and scannable: no repetition across sections, ~3-5 bullets per section, short
+    sentences, bold names for alternatives, `Konsekwencje` always split into Pozytywne / Negatywne.
+  - Every claim in `Kontekst` should link to its source (Context Map, an ARCHITECTURE.md driver,
+    another ADR) instead of re-explaining it.
 - See [example-adr.md](./assets/example-adr.md) for a fully filled-in illustrative ADR (generic content, not a real project decision).
 
 ## Procedures
