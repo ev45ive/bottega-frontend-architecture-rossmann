@@ -1,6 +1,6 @@
 // Plain vanilla-JS "component": exposes a mount/unmount pair instead of a framework tree.
-export function mount(container, props = {}) {
-  const { label = 'Vanilla JS Remote' } = props;
+export function mount(container: HTMLElement, props: { label?: string } = {}) {
+  const { label = "Vanilla JS Remote" } = props;
   let count = 0;
 
   container.innerHTML = `
@@ -11,15 +11,16 @@ export function mount(container, props = {}) {
     </div>
   `;
 
-  const button = container.querySelector('button');
+  // button is always present, it's part of the innerHTML set right above
+  const button = container.querySelector("button")!;
   const onClick = () => {
     count += 1;
     button.textContent = `Clicked ${count} times`;
   };
-  button.addEventListener('click', onClick);
+  button.addEventListener("click", onClick);
 
   return function unmount() {
-    button.removeEventListener('click', onClick);
-    container.innerHTML = '';
+    button.removeEventListener("click", onClick);
+    container.innerHTML = "";
   };
 }

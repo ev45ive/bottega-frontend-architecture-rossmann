@@ -5,7 +5,10 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "remoteJs/*": ["./@mf-types/remoteJs/*"]
+    }
   },
-  "include": ["src", "webpack.config.ts"]
+  "include": ["src", "webpack.config.ts", "@mf-types"]
 }

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>shell-dynamic — Module Federation (runtime remotes)</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem; }
+      header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+      #remotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>shell-dynamic</h1>
+      <div>Cart items: <strong id="cart-count">0</strong></div>
+    </header>
+    <p>
+      Remote URLs are fetched at runtime from <code>/remotes.config.json</code> and registered via
+      <code>@module-federation/enhanced/runtime</code> — no remote URL is baked into this build.
+    </p>
+    <div id="remotes"></div>
+  </body>
+</html>

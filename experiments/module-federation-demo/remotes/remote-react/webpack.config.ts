@@ -9,15 +9,15 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
   mode: "development",
   entry: "./src/index.ts",
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".tsx", ".js"],
   },
   module: {
     rules: [
       {
-        test: /\.[jt]s$/,
+        test: /\.[jt]sx?$/,
         // ts-loader depends on ts.sys, which TypeScript 7 no longer exposes
         loader: "esbuild-loader",
-        options: { loader: "ts", target: "es2020" },
+        options: { loader: "tsx", target: "es2020" },
         exclude: /node_modules/,
         // package.json has "type": "module", which forces fully-specified extensionless imports
         resolve: { fullySpecified: false },
@@ -25,12 +25,12 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
     ],
   },
   devServer: {
-    port: 4001,
+    port: 4002,
     // CORS:
     headers: { "Access-Control-Allow-Origin": "*" },
   },
   output: {
-    publicPath: "http://localhost:4001/",
+    publicPath: "http://localhost:4002/",
     path: path.resolve(__dirname, "dist"),
   },
   plugins: [
@@ -38,10 +38,10 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
       template: "./public/index.html",
     }),
     new ModuleFederationPlugin({
-      name: "remoteJs",
+      name: "remoteReact",
       filename: "remoteEntry.js",
       exposes: {
-        "./Widget": "./src/Widget.ts",
+        "./Widget": "./src/Widget.tsx",
       },
       dts: {
         generateTypes: true,
