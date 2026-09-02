@@ -4550,3 +4550,1463 @@ _**Agent (copilot/claude-sonnet-5)**_
 
 Running ` netstat -ano | grep ":4000" | grep LISTENING`
 </details></tool-use>
+
+---
+
+_**User (2026-09-02 13:36:25Z)**_
+
+
+ERROR in ./src/App.tsx 5:0-47
+Module not found: Error: Can't resolve 'remoteReact/Widget' in 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\src'
+resolve 'remoteReact/Widget' in 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\src'
+  Parsed request is a module
+  using description file: C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\package.json (relative path: ./src)
+    Field 'browser' doesn't contain a valid alias configuration
+    resolve as module
+      C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\src\node_modules doesn't exist or is not a directory
+      looking for modules in C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\node_modules
+        C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\node_modules\remoteReact doesn't exist
+      C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\node_modules doesn't exist or is not a directory
+      looking for modules in C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules
+        C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\remoteReact doesn't exist
+      C:\Projects\bottega-frontend-architecture-rossmann\experiments\node_modules doesn't exist or is not a directory
+      looking for modules in C:\Projects\bottega-frontend-architecture-rossmann\node_modules
+        C:\Projects\bottega-frontend-architecture-rossmann\node_modules\remoteReact doesn't exist
+      C:\Projects\node_modules doesn't exist or is not a directory
+      C:\node_modules doesn't exist or is not a directory
+ @ ./src/bootstrap.ts 19:24-39
+ @ ./src/index.ts 2:0-21
+
+webpack 5.110.3 compiled with 1 error in 1124 ms
+
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<think><details><summary>Thought Process</summary>
+The static `import { CartPanel } from "remoteReact/Widget"` in `App.tsx` is the bug — webpack can't resolve a federated remote via a plain static import when there's no build-time `remotes` map (by design, this shell uses the dynamic runtime API only). `bootstrap.ts` already correctly loads `CartPanel` via `loadRemote(...)`; it just needs to be passed into `App` instead of re-imported statically.
+</details></think>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `webpack.config.js`
+
+**Input:**
+
+- endLine: `80`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\webpack.config.js`
+- startLine: `1`
+
+**Result:**
+
+```
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const {
+  ModuleFederationPlugin,
+} = require("@module-federation/enhanced/webpack");
+const remotesConfig = require("./public/remotes.config.json");
+
+// Reuse the same URLs the runtime fetches remotes.config.json for, so type
+// consumption stays in sync with the dynamically registered remotes.
+// `alias` must be set explicitly - the dts-plugin keys its internal remote
+// map by this field, not by the remoteTypeUrls object key.
+const remoteTypeUrls = Object.fromEntries(
+  Object.entries(remotesConfig).map(([name, entry]) => {
+    const baseUrl = entry.replace(/remoteEntry\.js$/, "");
+    return [
+      name,
+      {
+        alias: name,
+        api: `${baseUrl}@mf-types.d.ts`,
+        zip: `${baseUrl}@mf-types.zip`,
+      },
+    ];
+  }),
+);
+
+module.exports = {
+  entry: "./src/index.ts",
+  mode: "development",
+  devServer: {
+    port: 4000,
+    static: { directory: path.resolve(__dirname, "public") },
+  },
+  output: {
+    publicPath: "http://localhost:4000/",
+    path: path.resolve(__dirname, "dist"),
+  },
+  resolve: {
+    extensions: [".ts", ".tsx", ".js"],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.[jt]sx?$/,
+        // ts-loader depends on ts.sys, which TypeScript 7 no longer exposes
+        loader: "esbuild-loader",
+        options: { loader: "tsx", target: "es2020" },
+        exclude: /node_modules/,
+        // package.json has "type": "module", which forces fully-specified extensionless imports
+        resolve: { fullySpecified: false },
+      },
+    ],
+  },
+  plugins: [
+    new ModuleFederationPlugin({
+      name: "shellDynamic",
+      // Dynamic strategy: no `remotes` map here — remotes are registered at
+      // runtime via @module-federation/enhanced's runtime API instead.
+      dts: {
+        consumeTypes: { remoteTypeUrls },
+      },
+      shared: {
+        react: { singleton: true, requiredVersio
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
+
+Read `src`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\src`
+
+**Result:**
+
+```
+App.tsx
+bootstrap.ts
+index.ts
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
+
+Read `libs`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\libs`
+
+**Result:**
+
+```
+bridge-react/
+shared-query/
+shared-store/
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `App.tsx`
+
+**Input:**
+
+- endLine: `60`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\src\App.tsx`
+- startLine: `1`
+
+**Result:**
+
+```
+import { QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
+import { Provider } from "react-redux";
+import { CartPanel } from "remoteReact/Widget";
+
+import { store } from "@mfe/shared-store";
+import { queryClient } from "@mfe/shared-query";
+
+export function App() {
+  return (
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <CartPanel message="" />
+      </QueryClientProvider>
+    </Provider>
+  );
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `bootstrap.ts`
+
+**Input:**
+
+- endLine: `60`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\src\bootstrap.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+import {
+  init,
+  registerRemotes,
+  loadRemote,
+} from "@module-federation/enhanced/runtime";
+
+// import { store, cartSelectors } from '@mfe/shared-store';
+
+// function renderCartBadge() {
+//   const badge = document.getElementById('cart-count');
+//   if (!badge) return;
+//   const items = cartSelectors.selectAll(store.getState().cart);
+//   badge.textContent = String(items.reduce((sum, item) => sum + item.qty, 0));
+// }
+import React from "react";
+import { createRoot } from "react-dom/client";
+
+async function mountRemotes() {
+  // Dynamic strategy: URLs come from a runtime-fetched config (could just as
+  // easily be an API response), not from webpack.config.js.
+  const remoteUrls: Record<string, string> = await fetch(
+    "/remotes.config.json",
+  ).then((res) => res.json());
+
+  init({ name: "shellDynamic", remotes: [] });
+  registerRemotes(
+    Object.entries(remoteUrls).map(([name, entry]) => ({ name, entry })),
+  );
+
+  const container = document.getElementById("remotes");
+
+  // const { mount } = await loadRemote("remoteJs/Widget");
+
+  const { CartPanel } = await loadRemote("remoteReact/Widget");
+  const { App } = await import("./App");
+
+  if (container) {
+    createRoot(container).render(React.createElement(App));
+  }
+
+  // const { default: WebComponent } = await loadRemote("remoteReact/WebComponent");
+  // if (!container) return;
+  // container.innerHTML = `
+  //   <div>
+  //     <p><strong>React bridge:</strong>
+  //     <remote-react-widget message="Hey from shell"></remote-react-widget>
+  //   </div>
+  //   <div>
+  //     <p><strong>Vue bridge:</strong> well-known vs. hand-rolled</p>
+  //     <remote-vue-widget></remote-vue-widget>
+  //     <remote-vue-widget-simple></remote-vue-widget-simple>
+  //   </div>
+  // `;
+}
+
+mountRemotes();
+
+// store.subscribe(renderCartBadge);
+// renderCartBadge();
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `index.ts`
+
+**Input:**
+
+- endLine: `20`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\src\index.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+// Async boundary required by Module Federation so the shared scope can init
+// before any federated module (this one included) evaluates.
+import('./bootstrap');
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+The static  in `App.tsx` is the bug — webpack can't resolve a federated remote via a plain static import when there's no build-time  map (by design, this shell uses the dynamic runtime API only). `bootstrap.ts` already correctly loads  via ; it just needs to be passed into  instead of re-imported statically. 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **App.tsx**</summary>
+
+@@ lines 4-9 @@
+
+```
+
+import { store } from "@mfe/shared-store";
+import { queryClient } from "@mfe/shared-query";
+
+interface AppProps {
+  // Loaded at runtime via loadRemote() — never imported statically, since
+  // this shell has no build-time `remotes` map for webpack to resolve.
+  CartPanel: React.ComponentType<{ message: string }>;
+}
+
+export function App({ CartPanel }: AppProps
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **bootstrap.ts**</summary>
+
+@@ lines 38-38 @@
+
+```
+, { CartPanel }
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 2 todos
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `Widget.tsx`
+
+**Input:**
+
+- endLine: `30`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\src\Widget.tsx`
+- startLine: `1`
+
+**Result:**
+
+```
+import React from "react";
+
+type Props = {
+  message: string;
+};
+
+export function CartPanel({ message = "" }: Props) {
+  return <div>Cart panel - {message}</div>;
+}
+
+
+import { store } from "@mfe/shared-store";
+import { queryClient } from "@mfe/shared-query";
+
+
+
+export function Widget() {
+  return (
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <CartPanel message="" />
+      </QueryClientProvider>
+    </Provider>
+  );
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `package.json`
+
+**Input:**
+
+- endLine: `30`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\package.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "name": "shell-dynamic",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "webpack serve --mode development",
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "@module-federation/enhanced": "^2.9.0",
+    "@reduxjs/toolkit": "^2.12.0",
+    "@tanstack/query-core": "^5.102.8",
+    "@tanstack/react-query": "^5.102.8",
+    "react-redux": "^9.3.0"
+  },
+  "devDependencies": {
+    "html-webpack-plugin": "^5.6.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.5",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Restart remote-js dev server.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=a0f720a1-bfe9-4984-aabc-df44f3f78c1b
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+
+> remote-js@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4001/, http://[::1]:4001/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4001/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 1.06 MiB
+  asset remoteEntry.js 542 KiB [emitted] (name: remoteJs)
+  asset main.js 538 KiB [emitted] (name: main)
+  asset __federation_expose_Widget.js 1.88 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.79 KiB
+  asset mf-stats.json 941 bytes [emitted]
+  asset mf-manifest.json 887 bytes [emitted]
+asset @mf-types.zip 635 bytes [emitted]
+asset index.html 401 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.2 KiB 28 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  + 2 modules
+modules by path ./ 1.79 KiB
+  ./src/index.ts 87 bytes [built] [code generated]
+  ./node_modules/.federation/entry.3a4d2b6213f5c3067e845cf796913ca2.js 995 bytes [built] [code generated]
+  ./src/Widget.ts 756 bytes [built] [code generated]
+container entry 42 bytes [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Restart remote-react dev server.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=4d8d3e5c-e2ce-4ec5-be52-f7b329510a7a
+ The command became idle with output:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+
+> remote-react@1.0.0 dev
+> webpack serve --mode=development
+
+file:///C:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/node_modules/webpack-dev-server/lib/Server.js:2581
+        throw error;
+        ^
+
+Error: listen EADDRINUSE: address already in use :::4002
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at READ_WRITE (file:///C:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/node_modules/webpack-dev-server/lib/Server.js:3591:23)
+    at new Promise (<anonymous>)
+    at Server.listen (file:///C:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/node_modules/webpack-dev-server/lib/Server.js:3589:7)
+    at Server.start (file:///C:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/node_modules/webpack-dev-server/lib/Server.js:3518:16)
+    at async Command.action (C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack-cli\lib\webpack-cli.js:1580:25)
+    at async Command.parseAsync (C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack-cli\node_modules\commander\lib\command.js:1122:5)
+    at async Command.<anonymous> (C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack-cli\lib\webpack-cli.js:1945:13) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 4002
+}
+
+Node.js v24.15.0
+npm error Lifecycle script `dev` failed with error:
+
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` curl -sS -o /dev/null -w "remoteJs: %\{http\_code\}\\n" http://localhost:4001/re...`
+
+Check whether remote-react and shell-dynamic dev servers are already running elsewhere (in the user's own terminals) before starting new instances.
+
+```bash
+curl -sS -o /dev/null -w "remoteJs: %{http_code}\n" http://localhost:4001/remoteEntry.js; curl -sS -o /dev/null -w "remoteReact: %{http_code}\n" http://localhost:4002/remoteEntry.js; curl -sS -o /dev/null -w "shell-dynamic: %{http_code}\n" http://localhost:4000/
+```
+
+**Result:**
+
+```
+remoteJs: 200
+remoteReact: 200
+shell-dynamic: 200
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="kill_terminal"><details>
+<summary>Tool use: **kill_terminal**</summary>
+
+Killed terminal
+
+**Input:**
+
+- id: `4d8d3e5c-e2ce-4ec5-be52-f7b329510a7a`
+
+**Result:**
+
+```
+Successfully killed persistent terminal 4d8d3e5c-e2ce-4ec5-be52-f7b329510a7a. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+
+> remote-react@1.0.0 dev
+> webpack serve --mode=development
+
+file:///C:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/node_modules/webpack-dev-server/lib/Server.js:2581
+        throw error;
+        ^
+
+Error: listen EADDRINUSE: address already in use :::4002
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at READ_WRITE (file:///C:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/node_modules/webpack-dev-server/lib/Server.js:3591:23)
+    at new Promise (<anonymous>)
+    at Server.listen (file:///C:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/node_modules/webpack-dev-server/lib/Server.js:3589:7)
+    at Server.start (file:///C:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/node_modules/webpack-dev-server/lib/Server.js:3518:16)
+    at async Command.action (C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack-cli\lib\webpack-cli.js:1580:25)
+    at async Command.parseAsync (C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack-cli\node_modules\commander\lib\command.js:1122:5)
+    at async Command.<anonymous> (C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack-cli\lib\webpack-cli.js:1945:13) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 4002
+}
+
+Node.js v24.15.0
+npm error Lifecycle script `dev` failed with error:
+npm
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Fixed the resolution error: `App.tsx` had a static , but this shell has no build-time  map (by design — it's the dynamic-remotes pattern), so webpack can't resolve that specifier at all.
+
+- `experiments/module-federation-demo/shells/shell-dynamic/src/App.tsx`: now takes  as a prop instead of importing it directly.
+- `experiments/module-federation-demo/shells/shell-dynamic/src/bootstrap.ts`: already loads it correctly via  — now passes it into  as a prop.
+
+Your dev servers (remote-js:4001, remote-react:4002, shell-dynamic:4000) are already running and should hot-reload with this fix.
+
+One heads-up unrelated to this error: remote-react/src/Widget.tsx has a second exported  function that references  and  without importing them from /`@tanstack/react-query`. It won't break anything right now since nothing calls  yet, but it'll throw a `ReferenceError` the moment something does. Let me know if you want that fixed too.
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Updated todo list
+</details></tool-use>
+
+---
+
+_**User (2026-09-02 13:42:38Z)**_
+
+[Terminal a0f720a1-bfe9-4984-aabc-df44f3f78c1b notification: command completed with exit code 1. The terminal has been cleaned up.]
+Terminal output:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+
+> remote-js@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4001/, http://[::1]:4001/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4001/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 1.06 MiB
+  asset remoteEntry.js 542 KiB [emitted] (name: remoteJs)
+  asset main.js 538 KiB [emitted] (name: main)
+  asset __federation_expose_Widget.js 1.88 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.79 KiB
+  asset mf-stats.json 941 bytes [emitted]
+  asset mf-manifest.json 887 bytes [emitted]
+asset @mf-types.zip 635 bytes [emitted]
+asset index.html 401 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.2 KiB 28 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  + 2 modules
+modules by path ./ 1.79 KiB
+  ./src/index.ts 87 bytes [built] [code generated]
+  ./node_modules/.federation/entry.3a4d2b6213f5c3067e845cf796913ca2.js 995 bytes [built] [code generated]
+  ./src/Widget.ts 756 bytes [built] [code generated]
+container entry 42 bytes [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi-html-community/index.js 4.16 KiB [built] [code generated]
+webpack 5.110.3 compiled successfully in 2520 ms
+npm error Lifecycle script `dev` failed with error:
+npm error code 1
+npm error path C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js
+npm error workspace remote-js@1.0.0
+npm error location C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c webpack serve
+
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` curl -sS -o /dev/null -w "remoteJs: %\{http\_code\}\\n" http://localhost:4001/re...`
+</details></tool-use>
+
+---
+
+_**User (2026-09-02 13:48:21Z)**_
+
+why QueryClientProvider.js:17 Uncaught Error: No QueryClient set, use QueryClientProvider to set one  ( consumer is in remote, provider is in shell)
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<think><details><summary>Thought Process</summary>
+Now add the missing declared dependencies to `remote-react`'s `package.json` (it currently imports `react-redux`, `@tanstack/react-query`, `@mfe/shared-store`, `@mfe/shared-query` without declaring any of them): 
+
+Both compile successfully with `@tanstack/react-query`, `react-redux`, and `@reduxjs/toolkit` now bundled as shared/vendor chunks. Restarting `shell-dynamic`:
+</details></think>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `webpack.config.ts`, lines 1 to 55
+
+**Input:**
+
+- endLine: `55`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\webpack.config.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import { Configuration } from "webpack";
+import type { Configuration as DevServerConfiguration } from "webpack-dev-server";
+
+import { ModuleFederationPlugin } from "@module-federation/enhanced/webpack";
+import path from "path";
+
+const config: Configuration & { devServer?: DevServerConfiguration } = {
+  mode: "development",
+  entry: "./src/index.ts",
+  resolve: {
+    extensions: [".ts", ".tsx", ".js"],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.[jt]sx?$/,
+        // ts-loader depends on ts.sys, which TypeScript 7 no longer exposes
+        loader: "esbuild-loader",
+        options: { loader: "tsx", target: "es2020" },
+        exclude: /node_modules/,
+        // package.json has "type": "module", which forces fully-specified extensionless imports
+        resolve: { fullySpecified: false },
+      },
+    ],
+  },
+  devServer: {
+    port: 4002,
+    // CORS:
+    headers: { "Access-Control-Allow-Origin": "*" },
+  },
+  output: {
+    publicPath: "http://localhost:4002/",
+    path: path.resolve(__dirname, "dist"),
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: "./public/index.html",
+    }),
+    new ModuleFederationPlugin({
+      name: "remoteReact",
+      filename: "remoteEntry.js",
+      exposes: {
+        "./Widget": "./src/Widget.tsx",
+        "./WebComponent": "./src/WebComponent.tsx",
+      },
+      dts: {
+        generateTypes: true,
+      },
+      shared: {
+        react: { singleton: true, requiredVersion: false },
+        "react-dom": { singleton: true, requiredVersion: false },
+        "@mfe/shared-store": { singleton: true, requiredVersion: "1.0.0" },
+        "@mfe/shared-query": { singleton: true, requiredVersion: "1.0.0" },
+      },
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `Widget.tsx`, lines 1 to 40
+
+**Input:**
+
+- endLine: `40`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\src\Widget.tsx`
+- startLine: `1`
+
+**Result:**
+
+```
+import React from 'react';
+import { useEffect } from 'react';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { QueryClientProvider, useQuery } from '@tanstack/react-query';
+import {
+  store,
+  fetchCart,
+  itemAdded,
+  quantityChanged,
+  cartSelectors,
+  type AppDispatch,
+  type RootState,
+} from '@mfe/shared-store';
+import { queryClient, productsQuery } from '@mfe/shared-query';
+
+export function CartPanel() {
+  const dispatch = useDispatch<AppDispatch>();
+  const items = useSelector((state: RootState) => cartSelectors.selectAll(state.cart));
+  const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const { data: products, isLoading } = useQuery(productsQuery);
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
+
+  return (
+    <div className="remote-react-widget" style={{ border: '1px solid #999', padding: '1rem', borderRadius: 6 }}>
+      <h3>Cart (React remote)</h3>
+      <p>
+        Products via TanStack Query, cart via the shared Redux store — both singletons imported from{' '}
+        <code>@mfe/shared-query</code> / <code>@mfe/shared-store</code>.
+      </p>
+      {isLoading && <p>Loading products…</p>}
+      <ul>
+        {products?.map((product) => (
+          <li key={product.id}>
+            {product.name} — ${product.price}{' '}
+            <button
+              type="button"
+              onClick={() =>
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `package.json`
+
+**Input:**
+
+- endLine: `40`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\package.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "name": "remote-react",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack serve --mode=development"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@module-federation/enhanced": "^2.9.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "html-webpack-plugin": "^5.6.8",
+    "ts-loader": "^9.6.2",
+    "typescript": "^7.0.2",
+    "webpack": "^5.110.3",
+    "webpack-cli": "^7.2.3",
+    "webpack-dev-server": "^6.0.0"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Check the resolved versions of @tanstack/react-query and react-redux from the workspace root to confirm they're hoisted and match across packages.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo" && node -p "require('@tanstack/react-query/package.json').version" && node -p "require('react-redux/package.json').version"
+```
+
+**Result:**
+
+```
+5.102.8
+9.3.0
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `package.json`
+
+**Input:**
+
+- endLine: `15`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\libs\shared-store\package.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "name": "@mfe/shared-store",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.2.5"
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `package.json`
+
+**Input:**
+
+- endLine: `15`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\libs\shared-query\package.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "name": "@mfe/shared-query",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@tanstack/query-core": "^5.51.0"
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **webpack.config.ts**</summary>
+
+@@ lines 53-53 @@
+
+```
+react-redux": { singleton: true, requiredVersion: false },
+        "@tanstack/react-query": { singleton: true, requiredVersion: false },
+        "
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+
+```
+
+```
+
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **webpack.config.js**</summary>
+
+@@ lines 64-64 @@
+
+```
+        "react-redux": { singleton: true, requiredVersion: false },
+        "@tanstack/react-query": { singleton: true, requiredVersion: false },
+
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Now add the missing declared dependencies to 's `package.json` (it currently imports , `@tanstack/react-query`, , `@mfe/shared-query` without declaring any of them): 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Declare the dependencies remote-react's Widget.tsx actually imports, instead of relying on accidental hoisting.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo" && npm install react-redux @tanstack/react-query @mfe/shared-store @mfe/shared-query -w remote-react
+```
+
+**Result:**
+
+```
+
+up to date, audited 517 packages in 2s
+
+130 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `package.json`, lines 18 to 34
+
+**Input:**
+
+- endLine: `36`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\package.json`
+- startLine: `18`
+
+**Result:**
+
+```
+    "html-webpack-plugin": "^5.6.8",
+    "ts-loader": "^9.6.2",
+    "typescript": "^7.0.2",
+    "webpack": "^5.110.3",
+    "webpack-cli": "^7.2.3",
+    "webpack-dev-server": "^6.0.0"
+  },
+  "dependencies": {
+    "@mfe/shared-query": "^1.0.0",
+    "@mfe/shared-store": "^1.0.0",
+    "@tanstack/react-query": "^5.102.8",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-redux": "^9.3.0"
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Both webpack dev servers should hot-reload with the shared config change. Let me verify they've picked it up:  
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` curl -sS -o /dev/null -w "remoteJs: %\{http\_code\}\\n" http://localhost:4001/re...`
+
+Check that dev servers are still responsive after the config/dependency changes.
+
+```bash
+curl -sS -o /dev/null -w "remoteJs: %{http_code}\n" http://localhost:4001/remoteEntry.js; curl -sS -o /dev/null -w "remoteReact: %{http_code}\n" http://localhost:4002/remoteEntry.js; curl -sS -o /dev/null -w "shell-dynamic: %{http_code}\n" http://localhost:4000/
+```
+
+**Result:**
+
+```
+curl: (7) Failed to connect to localhost port 4001 after 2261 ms: Couldn't connect to server
+remoteJs: 000
+curl: (7) Failed to connect to localhost port 4002 after 2252 ms: Couldn't connect to server
+remoteReact: 000
+curl: (7) Failed to connect to localhost port 4000 after 2265 ms: Couldn't connect to server
+shell-dynamic: 000
+
+Command exited with code 7
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Restart remote-js dev server.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=f1396ff1-d054-4cf7-bd67-92bde29f68fc
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+
+> remote-js@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4001/, http://[::1]:4001/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4001/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 1.06 MiB
+  asset remoteEntry.js 542 KiB [emitted] (name: remoteJs)
+  asset main.js 538 KiB [emitted] (name: main)
+  asset __federation_expose_Widget.js 1.88 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.79 KiB
+  asset mf-stats.json 941 bytes [emitted]
+  asset mf-manifest.json 887 bytes [emitted]
+asset @mf-types.zip 635 bytes [emitted]
+asset index.html 401 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.2 KiB 28 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  + 2 modules
+modules by path ./ 1.79 KiB
+  ./src/index.ts 87 bytes [built] [code generated]
+  ./node_modules/.federation/entry.3a4d2b6213f5c3067e845cf796913ca2.js 995 bytes [built] [code generated]
+  ./src/Widget.ts 756 bytes [built] [code generated]
+container entry 42 bytes [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Restart remote-react dev server with the updated shared config and dependencies.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=c4871492-51d1-451e-99cd-19881f2ce3e1
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+
+> remote-react@1.0.0 dev
+> webpack serve --mode=development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4002/, http://[::1]:4002/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4002/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 3.75 MiB
+  assets by chunk 1.56 MiB (id hint: vendors)
+    asset vendors-node_modules_r2wc_react-to-web-component_dist_react-to-web-component_js.js 1.07 MiB [emitted] (id hint: vendors)
+    asset vendors-node_modules_reduxjs_toolkit_dist_redux-toolkit_modern_mjs.js 175 KiB [emitted] (id hint: vendors)
+    asset vendors-node_modules_tanstack_react-query_build_modern_index_js.js 130 KiB [emitted] (id hint: vendors)
+    + 4 assets
+  + 6 assets
+assets by path *.json 9.37 KiB
+  asset mf-stats.json 5.16 KiB [emitted]
+  asset mf-manifest.json 4.21 KiB [emitted]
+asset @mf-types.zip 970 bytes [emitted]
+asset index.html 379 bytes [emitted]
+asset @mf-types.d.ts 335 bytes [emitted]
+runtime modules 86.9 KiB 39 modules
+modules by path ../../node_modules/ 1.72 MiB 157 modules
+modules by path ../../libs/ 4.01 KiB 9 modules
+provide-module modules 252 bytes
+  modules by path provide shared module (default) @mfe/ 84 bytes 2 modules
+  + 4 modules
+consume-shared-module modules 252 bytes
+  modules by path consume shared module (default) @mfe/ 84 bytes 2 modules
+  + 4 modules
+modules by path ./ 3.95 KiB
+  modules by path ./src/*.tsx 2.73 KiB 2 modules
+  ./src/index.ts 259 bytes [built] [code generated]
+  ./node_modules/.fed
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Both compile successfully with `@tanstack/react-query`, , and `@reduxjs/toolkit` now bundled as shared/vendor chunks. Restarting :  
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Restart shell-dynamic dev server with the updated shared config.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=02e0e248-8663-47ef-85eb-184098ecaa2f
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4000/, http://[::1]:4000/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4000/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\public' directory
+[ Module Federation DTS ] Federated types extraction completed
+assets by path *.js 2.13 MiB
+  assets by chunk 1.56 MiB (id hint: vendors)
+    asset vendors-node_modules_react-dom_client_js-node_modules_module-federation_enhanced_dist_src_run-a14133.js 1.07 MiB [emitted] (id hint: vendors)
+    asset vendors-node_modules_reduxjs_toolkit_dist_redux-toolkit_modern_mjs.js 177 KiB [emitted] (id hint: vendors)
+    asset vendors-node_modules_tanstack_query-core_build_modern_index_js.js 136 KiB [emitted] (id hint: vendors)
+    + 4 assets
+  asset main.js 558 KiB [emitted] (name: main)
+  asset libs_shared-store_src_index_ts.js 8.81 KiB [emitted]
+  asset libs_shared-query_src_index_ts.js 5.42 KiB [emitted]
+  asset src_bootstrap_ts-webpack_sharing_consume_default_react-dom_react-dom.js 3.29 KiB [emitted]
+  asset src_App_tsx.js 2.7 KiB [emitted]
+assets by path *.json 8.76 KiB
+  asset mf-stats.json 4.76 KiB [emitted]
+  asset mf-manifest.json 4 KiB [emitted]
+asset index.html 993 bytes [emitted]
+runtime modules 45.3 KiB 19 modules
+modules by path ../../node_modules/ 1.63 MiB 149 modules
+modules by path ./ 94.3 KiB
+  modules by path ./node_modules/ 92.6 KiB 9 modules
+  modules by path ./src/ 1.76 KiB 3 modules
+provide-module modules 336 bytes 8 modules
+modules by path ../../libs/ 3.74 KiB
+  modul
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Both compile successfully with `@tanstack/react-query`, , and `@reduxjs/toolkit` now bundled as shared/vendor chunks. Restarting :  
+
+All three compile cleanly. Cleaning up terminals:    
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="kill_terminal"><details>
+<summary>Tool use: **kill_terminal**</summary>
+
+Killed terminal
+
+**Input:**
+
+- id: `f1396ff1-d054-4cf7-bd67-92bde29f68fc`
+
+**Result:**
+
+```
+Successfully killed persistent terminal f1396ff1-d054-4cf7-bd67-92bde29f68fc. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+
+> remote-js@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4001/, http://[::1]:4001/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4001/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 1.06 MiB
+  asset remoteEntry.js 542 KiB [emitted] (name: remoteJs)
+  asset main.js 538 KiB [emitted] (name: main)
+  asset __federation_expose_Widget.js 1.88 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.79 KiB
+  asset mf-stats.json 941 bytes [emitted]
+  asset mf-manifest.json 887 bytes [emitted]
+asset @mf-types.zip 635 bytes [emitted]
+asset index.html 401 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.2 KiB 28 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  + 2 modules
+modules by path ./ 1.79 KiB
+  ./src/index.ts 87 bytes [built] [code generated]
+  ./node_modules/.federation/entry.3a4d2b6213f5c3067e845cf796913ca2.js 995 bytes [built] [code generated]
+  ./src/Widget.ts 756 bytes [built] [code generated]
+container entry 42 bytes [built] [code generated]
+../../node_module
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="kill_terminal"><details>
+<summary>Tool use: **kill_terminal**</summary>
+
+Killed terminal
+
+**Input:**
+
+- id: `c4871492-51d1-451e-99cd-19881f2ce3e1`
+
+**Result:**
+
+```
+Successfully killed persistent terminal c4871492-51d1-451e-99cd-19881f2ce3e1. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+
+> remote-react@1.0.0 dev
+> webpack serve --mode=development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4002/, http://[::1]:4002/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4002/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 3.75 MiB
+  assets by chunk 1.56 MiB (id hint: vendors)
+    asset vendors-node_modules_r2wc_react-to-web-component_dist_react-to-web-component_js.js 1.07 MiB [emitted] (id hint: vendors)
+    asset vendors-node_modules_reduxjs_toolkit_dist_redux-toolkit_modern_mjs.js 175 KiB [emitted] (id hint: vendors)
+    asset vendors-node_modules_tanstack_react-query_build_modern_index_js.js 130 KiB [emitted] (id hint: vendors)
+    + 4 assets
+  + 6 assets
+assets by path *.json 9.37 KiB
+  asset mf-stats.json 5.16 KiB [emitted]
+  asset mf-manifest.json 4.21 KiB [emitted]
+asset @mf-types.zip 970 bytes [emitted]
+asset index.html 379 bytes [emitted]
+asset @mf-types.d.ts 335 bytes [emitted]
+runtime modules 86.9 KiB 39 modules
+modules by path ../../node_modules/ 1.72 MiB 157 modules
+modules by path ../../libs/ 4.01 KiB 9 modules
+provide-module modules 252 bytes
+  modules by path provide shared module (default) @mfe/ 84 bytes 2 modules
+  + 4 modules
+consume-shared-module modules 252 bytes
+  modules by path consume shared module (default) @mfe/ 84 bytes 2 modules
+  + 4 modules
+modules by path ./ 3.95 KiB
+  modules by path ./src/*.tsx 2.73 KiB 2 modul
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="kill_terminal"><details>
+<summary>Tool use: **kill_terminal**</summary>
+
+Killed terminal
+
+**Input:**
+
+- id: `02e0e248-8663-47ef-85eb-184098ecaa2f`
+
+**Result:**
+
+```
+Successfully killed persistent terminal 02e0e248-8663-47ef-85eb-184098ecaa2f. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4000/, http://[::1]:4000/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4000/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\public' directory
+[ Module Federation DTS ] Federated types extraction completed
+assets by path *.js 2.13 MiB
+  assets by chunk 1.56 MiB (id hint: vendors)
+    asset vendors-node_modules_react-dom_client_js-node_modules_module-federation_enhanced_dist_src_run-a14133.js 1.07 MiB [emitted] (id hint: vendors)
+    asset vendors-node_modules_reduxjs_toolkit_dist_redux-toolkit_modern_mjs.js 177 KiB [emitted] (id hint: vendors)
+    asset vendors-node_modules_tanstack_query-core_build_modern_index_js.js 136 KiB [emitted] (id hint: vendors)
+    + 4 assets
+  asset main.js 558 KiB [emitted] (name: main)
+  asset libs_shared-store_src_index_ts.js 8.81 KiB [emitted]
+  asset libs_shared-query_src_index_ts.js 5.42 KiB [emitted]
+  asset src_bootstrap_ts-webpack_sharing_consume_default_react-dom_react-dom.js 3.29 KiB [emitted]
+  asset src_App_tsx.js 2.7 KiB [emitted]
+assets by path *.json 8.76 KiB
+  asset mf-stats.json 4.76 KiB [emitted]
+  asset mf-manifest.json 4 KiB [emitted]
+asset index.html 993 bytes [emitted]
+runtime modules 45.3 KiB 19 modules
+modules by path ../../node_modules/ 1.63 MiB 149 modules
+modules by path ./ 94.3 KiB
+  modules by path ./node_modules/ 92.6 KiB 9 modules
+  modules by path ./src/ 1.76 KiB 3 modules
+provide-mod
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+**Root cause:** `@tanstack/react-query` creates its `QueryClient` React Context via `createContext()` inside the package itself. Since it wasn't declared in Module Federation's  config on either side, webpack bundled a **separate copy** into 's container and a separate copy into 's host bundle — two distinct Context objects. The shell's  set a value on *its* Context instance; the remote's  (bundled with its own copy of the library) read from a *different* Context instance that was never provided, hence .
+
+Sharing `@mfe/shared-query`'s  singleton didn't help — sharing the *value* doesn't matter if the *Context object* reading it is a different reference across the federation boundary.
+
+**Fix applied:**
+- Added `"@tanstack/react-query": { singleton: true, requiredVersion: false }` and  (same class of bug applies to Redux's context) to  in both remote-react/webpack.config.ts and shell-dynamic/webpack.config.js.
+- Declared the previously-undeclared runtime deps (, `@tanstack/react-query`, , `@mfe/shared-query`) in 's `package.json` — they were only resolving by accidental hoisting before.
+
+All three dev servers now compile cleanly with these packages appearing as shared/consumed modules in the build output rather than bundled separately.
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 4 todos
+</details></tool-use>

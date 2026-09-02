@@ -50,6 +50,10 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
       shared: {
         react: { singleton: true, requiredVersion: false },
         "react-dom": { singleton: true, requiredVersion: false },
+        "react-redux": { singleton: true, requiredVersion: false },
+        "@tanstack/react-query": { singleton: true, requiredVersion: false },
+        "@mfe/shared-store": { singleton: true, requiredVersion: "1.0.0" },
+        "@mfe/shared-query": { singleton: true, requiredVersion: "1.0.0" },
       },
     }),
   ],

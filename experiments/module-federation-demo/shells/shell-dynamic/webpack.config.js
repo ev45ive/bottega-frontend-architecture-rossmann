@@ -35,16 +35,18 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
   },
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".tsx", ".js"],
   },
   module: {
     rules: [
       {
-        test: /\.ts$/,
-        exclude: /node_modules\/(?!@mfe)/,
+        test: /\.[jt]sx?$/,
         // ts-loader depends on ts.sys, which TypeScript 7 no longer exposes
         loader: "esbuild-loader",
-        options: { loader: "ts", target: "es2020" },
+        options: { loader: "tsx", target: "es2020" },
+        exclude: /node_modules/,
+        // package.json has "type": "module", which forces fully-specified extensionless imports
+        resolve: { fullySpecified: false },
       },
     ],
   },
@@ -59,11 +61,14 @@ module.exports = {
       shared: {
         react: { singleton: true, requiredVersion: false },
         "react-dom": { singleton: true, requiredVersion: false },
+        "react-redux": { singleton: true, requiredVersion: false },
+        "@tanstack/react-query": { singleton: true, requiredVersion: false },
 
-        // '@reduxjs/toolkit': shared['@reduxjs/toolkit'],
-        // '@tanstack/query-core': shared['@tanstack/query-core'],
-        // '@mfe/shared-store': shared['@mfe/shared-store'],
-        // '@mfe/shared-query': shared['@mfe/shared-query'],
+        "@mfe/shared-store": { singleton: true, requiredVersion: "1.0.0" },
+        "@mfe/shared-query": { singleton: true, requiredVersion: "1.0.0" },
+
+        "@reduxjs/toolkit": { singleton: true, requiredVersion: false },
+        "@tanstack/query-core": { singleton: true, requiredVersion: false },
       },
     }),
     new HtmlWebpackPlugin({ template: "./public/index.html" }),
