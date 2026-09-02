@@ -1,4 +1,8 @@
-import { init, registerRemotes, loadRemote } from '@module-federation/enhanced/runtime';
+import {
+  init,
+  registerRemotes,
+  loadRemote,
+} from "@module-federation/enhanced/runtime";
 
 // import { store, cartSelectors } from '@mfe/shared-store';
 
@@ -8,36 +12,45 @@ import { init, registerRemotes, loadRemote } from '@module-federation/enhanced/r
 //   const items = cartSelectors.selectAll(store.getState().cart);
 //   badge.textContent = String(items.reduce((sum, item) => sum + item.qty, 0));
 // }
+import React from "react";
+import { createRoot } from "react-dom/client";
 
 async function mountRemotes() {
   // Dynamic strategy: URLs come from a runtime-fetched config (could just as
   // easily be an API response), not from webpack.config.js.
-  const remoteUrls: Record<string, string> = await fetch('/remotes.config.json').then((res) => res.json());
+  const remoteUrls: Record<string, string> = await fetch(
+    "/remotes.config.json",
+  ).then((res) => res.json());
 
-  init({ name: 'shellDynamic', remotes: [] });
-  registerRemotes(Object.entries(remoteUrls).map(([name, entry]) => ({ name, entry })));
+  init({ name: "shellDynamic", remotes: [] });
+  registerRemotes(
+    Object.entries(remoteUrls).map(([name, entry]) => ({ name, entry })),
+  );
 
-  await Promise.all([
-    loadRemote('remoteJs/Widget'),
-    loadRemote('remoteReact/Widget'),
-    // loadRemote('remoteVue/WebComponent'),
-  ]);
+  // const { mount } = await loadRemote("remoteJs/Widget");
 
-  const container = document.getElementById('remotes');
-  if (!container) return;
-  container.innerHTML = `
-    <remote-js-widget label="From shell-dynamic"></remote-js-widget>
-    <div>
-      <p><strong>React bridge:</strong> well-known vs. hand-rolled</p>
-      <remote-react-widget></remote-react-widget>
-      <remote-react-widget-simple></remote-react-widget-simple>
-    </div>
-    <div>
-      <p><strong>Vue bridge:</strong> well-known vs. hand-rolled</p>
-      <remote-vue-widget></remote-vue-widget>
-      <remote-vue-widget-simple></remote-vue-widget-simple>
-    </div>
-  `;
+  const { CartPanel } = await loadRemote("remoteReact/Widget");
+
+  const container = document.getElementById("remotes");
+
+  if (container) {
+    createRoot(container).render(React.createElement(CartPanel));
+  }
+
+  // if (!container) return;
+  // container.innerHTML = `
+  //   <remote-js-widget label="From shell-dynamic"></remote-js-widget>
+  //   <div>
+  //     <p><strong>React bridge:</strong> well-known vs. hand-rolled</p>
+  //     <remote-react-widget></remote-react-widget>
+  //     <remote-react-widget-simple></remote-react-widget-simple>
+  //   </div>
+  //   <div>
+  //     <p><strong>Vue bridge:</strong> well-known vs. hand-rolled</p>
+  //     <remote-vue-widget></remote-vue-widget>
+  //     <remote-vue-widget-simple></remote-vue-widget-simple>
+  //   </div>
+  // `;
 }
 
 mountRemotes();

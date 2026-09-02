@@ -5,10 +5,12 @@ const remotesConfig = require('./public/remotes.config.json');
 
 // Reuse the same URLs the runtime fetches remotes.config.json for, so type
 // consumption stays in sync with the dynamically registered remotes.
+// `alias` must be set explicitly - the dts-plugin keys its internal remote
+// map by this field, not by the remoteTypeUrls object key.
 const remoteTypeUrls = Object.fromEntries(
   Object.entries(remotesConfig).map(([name, entry]) => {
     const baseUrl = entry.replace(/remoteEntry\.js$/, '');
-    return [name, { api: `${baseUrl}@mf-types.d.ts`, zip: `${baseUrl}@mf-types.zip` }];
+    return [name, { alias: name, api: `${baseUrl}@mf-types.d.ts`, zip: `${baseUrl}@mf-types.zip` }];
   }),
 );
 
@@ -16,7 +18,7 @@ module.exports = {
   entry: './src/index.ts',
   mode: 'development',
   devServer: {
-    port: 4010,
+    port: 4000,
     static: { directory: path.resolve(__dirname, 'public') },
   },
   output: {
@@ -31,7 +33,9 @@ module.exports = {
       {
         test: /\.ts$/,
         exclude: /node_modules\/(?!@mfe)/,
-        use: { loader: 'ts-loader', options: { transpileOnly: true } },
+        // ts-loader depends on ts.sys, which TypeScript 7 no longer exposes
+        loader: 'esbuild-loader',
+        options: { loader: 'ts', target: 'es2020' },
       },
     ],
   },

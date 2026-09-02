@@ -23,7 +23,7 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
     ],
   },
   devServer: {
-    port: 4000,
+    port: 4010,
   },
   plugins: [
     new HtmlWebpackPlugin({

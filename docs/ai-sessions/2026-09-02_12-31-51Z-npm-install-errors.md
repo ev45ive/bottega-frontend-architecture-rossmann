@@ -1486,90 +1486,385 @@ how shell to load widgets with types ( remote publishes tsd )
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<think><details><summary>Thought Process</summary>
+This `../../mf-shared` module doesn't exist anywhere in the repo — a pre-existing broken reference (all its usages below are already commented out), unrelated to my change. Removing the dead import since nothing actually uses it: 
+
+Good, all `shared[...]` references are commented out. Retrying `npm run dev`: 
+
+Found the real bug: `remote-react/webpack.config.ts` has `name: "remoteJs"` — a copy-paste collision with `remote-js`'s container name. Both remotes register under the same internal name, so Module Federation only keeps one, which is why only `remoteReact` types got extracted (and this would cause the same clash at runtime). 
+
+Good — `remoteEntry.js` now correctly named `(name: remoteReact)`. Now regenerate shell-dynamic's types: 
+
+Found the actual bug: `resolveRemotes` keys the internal map by `remoteTypeUrls[name].alias` — and I never set that `alias` field, so all entries collapsed onto the same `undefined` key, with the last one (remoteReact) winning. Fixing: 
+
+This module-augments `"@module-federation/enhanced/runtime"` — the exact module `bootstrap.ts` imports `loadRemote` from — so `loadRemote('remoteJs/Widget')` / `loadRemote('remoteReact/Widget')` are now typed automatically, no generics needed. Let me clean up the running dev servers before wrapping up.   
+
+Repo memory confirms this is the same known TS7/`ts-loader` incompatibility already fixed elsewhere in this repo. Applying the same established fix (swap for `esbuild-loader`) to `shell-dynamic`:
+</details></think>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `webpack.config.ts`
+
+**Input:**
+
+- endLine: `60`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static\webpack.config.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import type { Configuration } from "webpack";
+import type { Configuration as DevServerConfiguration } from "webpack-dev-server";
+import { ModuleFederationPlugin } from "@module-federation/enhanced/webpack";
+
+const config: Configuration & { devServer?: DevServerConfiguration } = {
+  mode: "development",
+  entry: "./src/index.ts",
+  resolve: {
+    extensions: [".ts", ".js"],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.[jt]s$/,
+        // ts-loader depends on ts.sys, which TypeScript 7 no longer exposes
+        loader: "esbuild-loader",
+        options: { loader: "ts", target: "es2020" },
+        exclude: /node_modules/,
+        // package.json has "type": "module", which forces fully-specified extensionless imports
+        resolve: { fullySpecified: false },
+      },
+    ],
+  },
+  devServer: {
+    port: 4000,
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: "./public/index.html",
+    }),
+    new ModuleFederationPlugin({
+      name: "shellStatic",
+      remotes: {
+        remoteJs: "remoteJs@http://localhost:4001/remoteEntry.js",
+      },
+    }),
+  ],
+};
+
+export default config;
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
-<summary>Tool use: **copilot_listDirectory**</summary>
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
 
 Read `shell-dynamic`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic`
+
+**Result:**
+
+```
+node_modules/
+package.json
+public/
+src/
+tsconfig.json
+webpack.config.js
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
-<summary>Tool use: **copilot_listDirectory**</summary>
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
 
 Read `shell-static`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static`
+
+**Result:**
+
+```
+@mf-types/
+node_modules/
+package.json
+public/
+src/
+tsconfig.json
+webpack.config.ts
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `webpack.config.js`
+
+**Input:**
+
+- endLine: `80`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\webpack.config.js`
+- startLine: `1`
+
+**Result:**
+
+```
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { ModuleFederationPlugin } = require('@module-federation/enhanced/webpack');
+const shared = require('../../mf-shared');
+
+module.exports = {
+  entry: './src/index.ts',
+  mode: 'development',
+  devServer: {
+    port: 4010,
+    static: { directory: path.resolve(__dirname, 'public') },
+  },
+  output: {
+    publicPath: 'http://localhost:4010/',
+    path: path.resolve(__dirname, 'dist'),
+  },
+  resolve: {
+    extensions: ['.ts', '.js'],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        exclude: /node_modules\/(?!@mfe)/,
+        use: { loader: 'ts-loader', options: { transpileOnly: true } },
+      },
+    ],
+  },
+  plugins: [
+    new ModuleFederationPlugin({
+      name: 'shellDynamic',
+      // Dynamic strategy: no `remotes` map here — remotes are registered at
+      // runtime via @module-federation/enhanced's runtime API instead.
+      shared: {
+        // '@reduxjs/toolkit': shared['@reduxjs/toolkit'],
+        // '@tanstack/query-core': shared['@tanstack/query-core'],
+        // '@mfe/shared-store': shared['@mfe/shared-store'],
+        // '@mfe/shared-query': shared['@mfe/shared-query'],
+      },
+    }),
+    new HtmlWebpackPlugin({ template: './public/index.html' }),
+  ],
+};
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
-<summary>Tool use: **copilot_listDirectory**</summary>
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
 
 Read `@mf-types`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static\@mf-types`
+
+**Result:**
+
+```
+index.d.ts
+remoteJs/
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
-<summary>Tool use: **copilot_listDirectory**</summary>
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
 
 Read `src`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static\src`
+
+**Result:**
+
+```
+index.ts
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `tsconfig.json`
+
+**Input:**
+
+- endLine: `40`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\tsconfig.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "remoteJs/*": ["./@mf-types/remoteJs/*"]
+    }
+  },
+  "include": ["src", "webpack.config.ts", "@mf-types"]
+}
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `index.ts`
+
+**Input:**
+
+- endLine: `40`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static\src\index.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+console.log("shell-static running");
+
+async function bootstrap() {
+  const { mount } = await import("remoteJs/Widget");
+
+  const container = document.querySelector("#app");
+  if (container) {
+    mount(container, { label: "Hello from shell-static" });
+  }
+}
+
+bootstrap();
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `tsconfig.json`
+
+**Input:**
+
+- endLine: `30`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static\tsconfig.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "remoteJs/*": ["./@mf-types/remoteJs/*"]
+    }
+  },
+  "include": ["src", "webpack.config.ts", "@mf-types"]
+}
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
-<summary>Tool use: **copilot_listDirectory**</summary>
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
 
 Read `remoteJs`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static\@mf-types\remoteJs`
+
+**Result:**
+
+```
+apis.d.ts
+compiled-types/
+Widget.d.ts
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `package.json`
+
+**Input:**
+
+- endLine: `30`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static\package.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "name": "shell-static",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack serve"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@module-federation/enhanced": "^2.9.0",
+    "html-webpack-plugin": "^5.6.8",
+    "ts-loader": "^9.6.2",
+    "typescript": "^7.0.2",
+    "webpack": "^5.110.3",
+    "webpack-cli": "^7.2.3",
+    "webpack-dev-server": "^6.0.0"
+  }
+}
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1578,134 +1873,563 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **run_in_terminal**</summary>
 
 Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Search @module-federation/enhanced type declarations for the dts consumption API to confirm the exact option names.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo" && find node_modules/@module-federation -iname "*.d.ts" | xargs grep -l "consumeTypes\|remoteTypeUrls\|DtsOptions\|generateTypes" 2>/dev/null
+```
+
+**Result:**
+
+```
+node_modules/@module-federation/cli/dist/commands/dts.d.ts
+node_modules/@module-federation/cli/dist/types.d.ts
+node_modules/@module-federation/dts-plugin/dist/constant-C0QI9ddQ.d.ts
+node_modules/@module-federation/dts-plugin/dist/core.d.ts
+node_modules/@module-federation/dts-plugin/dist/DtsWorker-SBLpkK-D.d.ts
+node_modules/@module-federation/dts-plugin/dist/index.d.ts
+node_modules/@module-federation/enhanced/dist/src/schemas/container/ModuleFederationPlugin.d.ts
+node_modules/@module-federation/sdk/dist/types/plugins/ModuleFederationPlugin.d.ts
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `core.d.ts`
+
+**Input:**
+
+- endLine: `120`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\@module-federation\dts-plugin\dist\core.d.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+import { a as DTSManagerOptions, c as retrieveRemoteConfig, i as DTSManager, o as HostOptions, r as index_d_exports, t as DtsWorker, u as RemoteOptions } from "./DtsWorker-SBLpkK-D.js";
+import { a as generateTypesInChildProcess, c as retrieveMfTypesPath, d as isTSProject, f as retrieveTypesAssetsInfo, i as consumeTypes, l as retrieveOriginalOutDir, m as retrieveHostConfig, n as REMOTE_ALIAS_IDENTIFIER, o as generateTypes, p as validateOptions, r as REMOTE_API_TYPES_FILE_NAME, s as retrieveTypesZipPath, t as HOST_API_TYPES_FILE_NAME, u as getDTSManagerConstructor } from "./constant-C0QI9ddQ.js";
+export { DTSManager, type DTSManagerOptions, DtsWorker, HOST_API_TYPES_FILE_NAME, type HostOptions, REMOTE_ALIAS_IDENTIFIER, REMOTE_API_TYPES_FILE_NAME, type RemoteOptions, consumeTypes, generateTypes, generateTypesInChildProcess, getDTSManagerConstructor, isTSProject, retrieveHostConfig, retrieveMfTypesPath, retrieveOriginalOutDir, retrieveRemoteConfig, retrieveTypesAssetsInfo, retrieveTypesZipPath, index_d_exports as rpc, validateOptions };
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_findTextInFiles"><details>
-<summary>Tool use: **copilot_findTextInFiles**</summary>
+<tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+<summary>Tool use: **grep_search**</summary>
 
 No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
 If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
 Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+**Input:**
+
+- includePattern: `node_modules/@module-federation/dts-plugin/dist/DtsWorker-SBLpkK-D.d.ts`
+- isRegexp: `true`
+- query: `interface HostOptions|remoteTypeUrls|abortOnError|consumeAPITypes|maxRetries|typescriptCompiler|deleteTypesFolder`
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `DtsWorker-SBLpkK-D.d.ts`
+
+**Input:**
+
+- endLine: `200`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\@module-federation\dts-plugin\dist\DtsWorker-SBLpkK-D.d.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+import { moduleFederationPlugin } from "@module-federation/sdk";
+import { ChildProcess } from "child_process";
+
+//#region \0rolldown/runtime.js
+//#endregion
+//#region src/core/interfaces/RemoteOptions.d.ts
+interface RemoteOptions extends moduleFederationPlugin.DtsRemoteOptions {
+  moduleFederationConfig: moduleFederationPlugin.ModuleFederationPluginOptions;
+  context?: string;
+  implementation?: string;
+  hostRemoteTypesFolder?: string;
+  outputDir?: string;
+}
+//#endregion
+//#region src/core/interfaces/TsConfigJson.d.ts
+type TsConfigCompilerOptions = Record<string, any> & {
+  rootDir?: string;
+  outDir?: string;
+  declarationDir?: string;
+  tsBuildInfoFile?: string;
+  incremental?: boolean;
+  paths?: Record<string, string[]>;
+  baseUrl?: string;
+};
+interface TsConfigJson {
+  extends?: string;
+  compilerOptions?: TsConfigCompilerOptions;
+  exclude?: string[];
+  include?: string[];
+  files?: string[];
+  references?: Array<{
+    path: string;
+  }>;
+  [key: string]: any;
+}
+//#endregion
+//#region src/core/configurations/remotePlugin.d.ts
+declare const retrieveRemoteConfig: (options: RemoteOptions) => {
+  tsConfig: TsConfigJson;
+  mapComponentsToExpose: any;
+  remoteOptions: Required<RemoteOptions>;
+};
+//#endregion
+//#region src/core/interfaces/HostOptions.d.ts
+interface HostOptions extends moduleFederationPlugin.DtsHostOptions {
+  moduleFederationConfig: moduleFederationPlugin.ModuleFederationPluginOptions;
+  context?: string;
+  implementation?: string;
+  runtimePkgs?: string[];
+}
+interface RemoteInfo {
+  name: string;
+  url: string;
+  alias: string;
+  zipUrl?: string;
+  apiTypeUrl?: string;
+}
+//#endregion
+//#region src/core/interfaces/DTSManagerOptions.d.ts
+interface DTSManagerOptions {
+  remote?: RemoteOptions;
+  host?: HostOptions;
+  extraOptions?: Record<string, any>;
+  displayErrorInTerminal?: moduleFederationPlugin.PluginDtsOptions['displayErrorInTerminal'];
+}
+//#endregion
+//#region src/server/constant.d.ts
+declare const enum UpdateMode {
+  POSITIVE = "POSITIVE",
+ 
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_findTextInFiles"><details>
-<summary>Tool use: **copilot_findTextInFiles**</summary>
+<tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+<summary>Tool use: **grep_search**</summary>
 
 No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
 If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
 Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+**Input:**
+
+- includePattern: `node_modules/@module-federation/sdk/dist/types/plugins/ModuleFederationPlugin.d.ts`
+- isRegexp: `true`
+- query: `DtsHostOptions|DtsRemoteOptions|PluginDtsOptions|remoteTypeUrls|consumeAPITypes|generateAPITypes|abortOnError`
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_findFiles"><details>
-<summary>Tool use: **copilot_findFiles**</summary>
+<tool-use data-tool-type="search" data-tool-name="file_search"><details>
+<summary>Tool use: **file_search**</summary>
 
 Searched for files matching `**/@module-federation/sdk/dist/types/plugins/ModuleFederationPlugin.d.ts`, no matches
+
+**Input:**
+
+- query: `**/@module-federation/sdk/dist/types/plugins/ModuleFederationPlugin.d.ts`
+
+**Result:**
+
+```
+No files found
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `ModuleFederationPlugin.d.ts`, lines 1 to 150
+
+**Input:**
+
+- endLine: `150`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\@module-federation\sdk\dist\types\plugins\ModuleFederationPlugin.d.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+import { Stats } from "../stats.js";
+import webpack from "webpack";
+
+//#region src/types/plugins/ModuleFederationPlugin.d.ts
+declare namespace ModuleFederationPlugin_d_exports {
+  export { AdditionalDataOptions, AmdContainer, AsyncBoundaryOptions, AuxiliaryComment, DtsGenerateTypesHookOptions, DtsHostOptions, DtsRemoteOptions, EntryRuntime, Exposes, ExposesConfig, ExposesItem, ExposesItems, ExposesObject, ExternalsType, IncludeExcludeOptions, LibraryCustomUmdCommentObject, LibraryCustomUmdObject, LibraryExport, LibraryName, LibraryOptions, LibraryType, ModuleFederationPluginOptions, PluginDevOptions, PluginDtsOptions, PluginManifestOptions, RemoteTypeUrls, Remotes, RemotesConfig, RemotesItem, RemotesItems, RemotesObject, Shared, SharedConfig, SharedItem, SharedObject, SharedStrategy, TreeShakingConfig, UmdNamedDefine };
+}
+/**
+ * Module that should be exposed by this container.
+ */
+type ExposesItem = string;
+/**
+ * Modules that should be exposed by this container.
+ */
+type ExposesItems = ExposesItem[];
+/**
+ * Modules that should be exposed by this container. Property names are used as public paths.
+ */
+interface ExposesObject {
+  [k: string]: ExposesConfig | ExposesItem | ExposesItems;
+}
+/**
+ * Advanced configuration for modules that should be exposed by this container.
+ */
+interface ExposesConfig {
+  /**
+   * Request to a module that should be exposed by this container.
+   */
+  import: ExposesItem | ExposesItems;
+  /**
+   * Custom chunk name for the exposed module.
+   */
+  name?: string;
+}
+/**
+ * Modules that should be exposed by this container. When provided, property name is used as public name, otherwise public name is automatically inferred from request.
+ */
+type Exposes = (ExposesItem | ExposesObject)[] | ExposesObject;
+/**
+ * Add a container for define/require functions in the AMD module.
+ */
+type AmdContainer = string;
+/**
+ * Add a comment in the UMD wrapper.
+ */
+type AuxiliaryComment = string | LibraryCustomUmdCommentObject;
+/**
+ * Set explicit comments for 
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_findTextInFiles"><details>
-<summary>Tool use: **copilot_findTextInFiles**</summary>
+<tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+<summary>Tool use: **grep_search**</summary>
 
 No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
 If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
 Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+**Input:**
+
+- includePattern: `node_modules/@module-federation/sdk/dist/types/plugins/ModuleFederationPlugin.d.ts`
+- isRegexp: `false`
+- query: `DtsHostOptions`
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_findTextInFiles"><details>
-<summary>Tool use: **copilot_findTextInFiles**</summary>
+<tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+<summary>Tool use: **grep_search**</summary>
 
 No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
 If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
 Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+**Input:**
+
+- includePattern: `**/sdk/dist/types/plugins/ModuleFederationPlugin.d.ts`
+- isRegexp: `true`
+- query: `interface DtsHostOptions|interface DtsRemoteOptions|RemoteTypeUrls|interface PluginDtsOptions`
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_findTextInFiles"><details>
-<summary>Tool use: **copilot_findTextInFiles**</summary>
+<tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+<summary>Tool use: **grep_search**</summary>
 
 Searched for regex `interface DtsHostOptions|interface DtsRemoteOptions|RemoteTypeUrls|interface PluginDtsOptions` (`**/sdk/dist/types/plugins/ModuleFederationPlugin.d.ts`), 6 results
+
+**Input:**
+
+- includeIgnoredFiles: `true`
+- includePattern: `**/sdk/dist/types/plugins/ModuleFederationPlugin.d.ts`
+- isRegexp: `true`
+- query: `interface DtsHostOptions|interface DtsRemoteOptions|RemoteTypeUrls|interface PluginDtsOptions`
+
+**Result:**
+
+```
+Found 6 matches in 1 file for "interface DtsHostOptions|interface DtsRemoteOptions|RemoteTypeUrls|interface PluginDtsOptions"
+
+experiments/module-federation-demo/node_modules/@module-federation/sdk/dist/types/plugins/ModuleFederationPlugin.d.ts
+6:t, LibraryExport, LibraryName, LibraryOptions, LibraryType, ModuleFederationPluginOptions, PluginDevOptions, PluginDtsOptions, PluginManifestOptions, RemoteTypeUrls, Remotes, RemotesConfig, RemotesItem, RemotesItems, RemotesObject, Shared, SharedConfig, SharedItem, Sha [match at col 472 · line truncated, 653 chars]
+291:interface RemoteTypeUrls {
+300:interface DtsHostOptions {
+308:  remoteTypeUrls?: (() => Promise<RemoteTypeUrls>) | RemoteTypeUrls;
+314:interface DtsRemoteOptions {
+333:interface PluginDtsOptions {
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `ModuleFederationPlugin.d.ts`, lines 280 to 400
+
+**Input:**
+
+- endLine: `400`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\@module-federation\sdk\dist\types\plugins\ModuleFederationPlugin.d.ts`
+- startLine: `280`
+
+**Result:**
+
+```
+}
+interface PluginDevOptions {
+  disableLiveReload?: boolean;
+  disableHotTypesReload?: boolean;
+  disableDynamicRemoteTypeHints?: boolean;
+}
+interface RemoteTypeUrl {
+  alias?: string;
+  api: string;
+  zip: string;
+}
+interface RemoteTypeUrls {
+  [remoteName: string]: RemoteTypeUrl;
+}
+interface DtsGenerateTypesHookOptions {
+  zipTypesPath: string;
+  apiTypesPath: string;
+  zipName: string;
+  apiFileName: string;
+}
+interface DtsHostOptions {
+  typesFolder?: string;
+  abortOnError?: boolean;
+  remoteTypesFolder?: string;
+  deleteTypesFolder?: boolean;
+  maxRetries?: number;
+  consumeAPITypes?: boolean;
+  runtimePkgs?: string[];
+  remoteTypeUrls?: (() => Promise<RemoteTypeUrls>) | RemoteTypeUrls;
+  timeout?: number;
+  /** The family of IP, used for network requests */
+  family?: 0 | 4 | 6;
+  typesOnBuild?: boolean;
+}
+interface DtsRemoteOptions {
+  tsConfigPath?: string;
+  typesFolder?: string;
+  compiledTypesFolder?: string;
+  /** Custom base output directory for generated types. When set, types will be emitted to this directory instead of the default compiler output directory. */
+  outputDir?: string;
+  deleteTypesFolder?: boolean;
+  additionalFilesToCompile?: string[];
+  compileInChildProcess?: boolean;
+  compilerInstance?: 'tsc' | 'vue-tsc' | 'tspc' | string;
+  generateAPITypes?: boolean;
+  extractThirdParty?: boolean | {
+    exclude?: Array<string | RegExp>;
+  };
+  extractRemoteTypes?: boolean;
+  abortOnError?: boolean;
+  deleteTsConfig?: boolean;
+  afterGenerate?: (options: DtsGenerateTypesHookOptions) => Promise<void> | void;
+}
+interface PluginDtsOptions {
+  generateTypes?: boolean | DtsRemoteOptions;
+  consumeTypes?: boolean | DtsHostOptions;
+  tsConfigPath?: string;
+  extraOptions?: Record<string, any>;
+  implementation?: string;
+  cwd?: string;
+  displayErrorInTerminal?: boolean;
+}
+type AsyncBoundaryOptions = {
+  eager?: RegExp | ((module: any) => boolean);
+  excludeChunk?: (chunk: any) => boolean;
+};
+interface ModuleFederationPluginOptions {
+  /**
+   * Module
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_findTextInFiles"><details>
-<summary>Tool use: **copilot_findTextInFiles**</summary>
+<tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+<summary>Tool use: **grep_search**</summary>
 
 Searched for regex `function loadRemote|declare function loadRemote` (`**/@module-federation/runtime*/dist/**/*.d.ts`), 1 result
+
+**Input:**
+
+- includeIgnoredFiles: `true`
+- includePattern: `**/@module-federation/runtime*/dist/**/*.d.ts`
+- isRegexp: `true`
+- query: `function loadRemote|declare function loadRemote`
+
+**Result:**
+
+```
+Found 1 match in 1 file for "function loadRemote|declare function loadRemote"
+
+experiments/module-federation-demo/node_modules/@module-federation/runtime/dist/index.d.ts
+6:declare function loadRemote<T>(...args: Parameters<ModuleFederation['loadRemote']>): Promise<T | null>;
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `Widget.d.ts`
+
+**Input:**
+
+- endLine: `30`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static\@mf-types\remoteJs\Widget.d.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+export * from './compiled-types/src/Widget';
+export { default } from './compiled-types/src/Widget';
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `index.d.ts`
+
+**Input:**
+
+- endLine: `30`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static\@mf-types\index.d.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+import type { PackageType as PackageType_0,RemoteKeys as RemoteKeys_0 } from './remoteJs/apis.d.ts';
+    declare module "@module-federation/runtime" {
+      type RemoteKeys = RemoteKeys_0;
+      type PackageType<T, Y=any> = T extends RemoteKeys_0 ? PackageType_0<T> :
+Y ;
+      export function loadRemote<T extends RemoteKeys,Y>(packageName: T): Promise<PackageType<T, Y>>;
+      export function loadRemote<T extends string,Y>(packageName: T): Promise<PackageType<T, Y>>;
+    }
+declare module "@module-federation/enhanced/runtime" {
+      type RemoteKeys = RemoteKeys_0;
+      type PackageType<T, Y=any> = T extends RemoteKeys_0 ? PackageType_0<T> :
+Y ;
+      export function loadRemote<T extends RemoteKeys,Y>(packageName: T): Promise<PackageType<T, Y>>;
+      export function loadRemote<T extends string,Y>(packageName: T): Promise<PackageType<T, Y>>;
+    }
+declare module "@module-federation/runtime-tools" {
+      type RemoteKeys = RemoteKeys_0;
+      type PackageType<T, Y=any> = T extends RemoteKeys_0 ? PackageType_0<T> :
+Y ;
+      export function loadRemote<T extends RemoteKeys,Y>(packageName: T): Promise<PackageType<T, Y>>;
+      export function loadRemote<T extends string,Y>(packageName: T): Promise<PackageType<T, Y>>;
+    }
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `package.json`
+
+**Input:**
+
+- endLine: `30`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\package.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "name": "shell-dynamic",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "webpack serve --mode development",
+    "build": "webpack --mode production"
+  },
+  "dependencies": { 
+    "@module-federation/enhanced": "^2.9.0"
+  },
+  "devDependencies": {
+    "html-webpack-plugin": "^5.6.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.5",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  }
+}
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `tsconfig.json`
+
+**Input:**
+
+- endLine: `20`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\tsconfig.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "remoteJs/*": ["./@mf-types/remoteJs/*"]
+    }
+  },
+  "include": ["src", "webpack.config.ts", "@mf-types"]
+}
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1766,6 +2490,54 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **run_in_terminal**</summary>
 
 Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Start remote-js dev server so its type manifest is available for shell-dynamic to consume.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=58572316-9035-47f5-bdb7-3cab961a4fa2
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+
+> remote-js@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4001/, http://[::1]:4001/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4001/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 1.06 MiB
+  asset remoteEntry.js 542 KiB [emitted] (name: remoteJs)
+  asset main.js 538 KiB [emitted] (name: main)
+  asset __federation_expose_Widget.js 1.88 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.79 KiB
+  asset mf-stats.json 941 bytes [emitted]
+  asset mf-manifest.json 887 bytes [emitted]
+asset @mf-types.zip 635 bytes [emitted]
+asset index.html 401 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.2 KiB 28 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  + 2 modules
+modules by path ./ 1.79 KiB
+  ./src/index.ts 87 bytes [built] [code generated]
+  ./node_modules/.federation/entry.3a4d2b6213f5c3067e845cf796913ca2.js 995 bytes [built] [code generated]
+  ./src/Widget.ts 756 bytes [built] [code generated]
+container entry 42 bytes [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1774,6 +2546,53 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **run_in_terminal**</summary>
 
 Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Start remote-react dev server so its type manifest is available for shell-dynamic to consume.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=7f91fa24-1329-4a1c-96a2-012d742b42e5
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+
+> remote-react@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4002/, http://[::1]:4002/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4002/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 2.24 MiB
+  asset main.js 1.66 MiB [emitted] (name: main)
+  asset remoteEntry.js 543 KiB [emitted] (name: remoteJs)
+  asset vendors-node_modules_react_index_js.js 49.4 KiB [emitted] (id hint: vendors)
+  asset __federation_expose_Widget.js 1.56 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.9 KiB
+  asset mf-stats.json 999 bytes [emitted]
+  asset mf-manifest.json 944 bytes [emitted]
+asset @mf-types.zip 614 bytes [emitted]
+asset index.html 379 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.5 KiB 30 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB 4 modules
+modules by path ../../node_modules/react-dom/ 1.04 MiB 4 modules
+modules by path ./ 1.37 KiB 3 modules
+modules by path ../../node_modules/react/ 46.3 KiB
+  ../../node_modules/react/index.js 186 bytes [built] [code generated]
+  ../../node_modules/react/cjs/react.development.js 46.1 KiB [built] [code generated]
+modules by path ../../node_modules/scheduler/ 12 KiB
+  ../../node_modules/scheduler/index.js 194 bytes [built] [code generated]
+  ../../nod
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1838,22 +2657,126 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **run_in_terminal**</summary>
 
 Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Start shell-dynamic dev server to verify it now consumes remote types via the new dts.consumeTypes config.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=f1117550-dd6f-4cef-9479-1cdb344ad114
+ The command became idle with output:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+[webpack-cli] Failed to load 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\webpack.config.js' config
+[webpack-cli] Error: Cannot find module '../../mf-shared'
+Require stack:
+- C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\webpack.config.js
+- C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\node_modules\webpack-cli\lib\webpack-cli.js
+- C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\node_modules\webpack-cli\lib\bootstrap.js
+- C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\node_modules\webpack-cli\bin\cli.js
+- C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\import-local\index.js
+- C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack-cli\bin\cli.js
+- C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack\bin\webpack.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    a
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_findFiles"><details>
-<summary>Tool use: **copilot_findFiles**</summary>
+<tool-use data-tool-type="search" data-tool-name="file_search"><details>
+<summary>Tool use: **file_search**</summary>
 
 Searched for files matching `**/experiments/module-federation-demo/mf-shared*`, no matches
+
+**Input:**
+
+- query: `experiments/module-federation-demo/mf-shared*`
+
+**Result:**
+
+```
+No files found
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `webpack.config.js`, lines 1 to 45
+
+**Input:**
+
+- endLine: `45`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\webpack.config.js`
+- startLine: `1`
+
+**Result:**
+
+```
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { ModuleFederationPlugin } = require('@module-federation/enhanced/webpack');
+const shared = require('../../mf-shared');
+const remotesConfig = require('./public/remotes.config.json');
+
+// Reuse the same URLs the runtime fetches remotes.config.json for, so type
+// consumption stays in sync with the dynamically registered remotes.
+const remoteTypeUrls = Object.fromEntries(
+  Object.entries(remotesConfig).map(([name, entry]) => {
+    const baseUrl = entry.replace(/remoteEntry\.js$/, '');
+    return [name, { api: `${baseUrl}@mf-types.d.ts`, zip: `${baseUrl}@mf-types.zip` }];
+  }),
+);
+
+module.exports = {
+  entry: './src/index.ts',
+  mode: 'development',
+  devServer: {
+    port: 4010,
+    static: { directory: path.resolve(__dirname, 'public') },
+  },
+  output: {
+    publicPath: 'http://localhost:4010/',
+    path: path.resolve(__dirname, 'dist'),
+  },
+  resolve: {
+    extensions: ['.ts', '.js'],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        exclude: /node_modules\/(?!@mfe)/,
+        use: { loader: 'ts-loader', options: { transpileOnly: true } },
+      },
+    ],
+  },
+  plugins: [
+    new ModuleFederationPlugin({
+      name: 'shellDynamic',
+      // Dynamic strategy: no `remotes` map here — remotes are registered at
+      // runtime via @module-federation/enhanced's runtime API instead.
+      dts: {
+        consumeTypes: { remoteTypeUrls },
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1870,10 +2793,41 @@ _**Agent (copilot/claude-sonnet-5)**_
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `webpack.config.js`, lines 36 to 56
+
+**Input:**
+
+- endLine: `60`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\webpack.config.js`
+- startLine: `36`
+
+**Result:**
+
+```
+    ],
+  },
+  plugins: [
+    new ModuleFederationPlugin({
+      name: 'shellDynamic',
+      // Dynamic strategy: no `remotes` map here — remotes are registered at
+      // runtime via @module-federation/enhanced's runtime API instead.
+      dts: {
+        consumeTypes: { remoteTypeUrls },
+      },
+      shared: {
+        // '@reduxjs/toolkit': shared['@reduxjs/toolkit'],
+        // '@tanstack/query-core': shared['@tanstack/query-core'],
+        // '@mfe/shared-store': shared['@mfe/shared-store'],
+        // '@mfe/shared-query': shared['@mfe/shared-query'],
+      },
+    }),
+    new HtmlWebpackPlugin({ template: './public/index.html' }),
+  ],
+};
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1886,38 +2840,154 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **run_in_terminal**</summary>
 
 Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Restart shell-dynamic dev server now that the broken mf-shared import is removed.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=4ba6ebde-1b08-4713-ba82-3405e2d2cf34
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4010/, http://[::1]:4010/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4010/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\public' directory
+[ Module Federation DTS ] Federated types extraction completed
+assets by path *.json 1.07 KiB
+  asset mf-manifest.json 547 bytes [emitted]
+  asset mf-stats.json 547 bytes [emitted]
+asset main.js 541 KiB [emitted] (name: main)
+asset index.html 931 bytes [emitted]
+runtime modules 30.7 KiB 16 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ./ 92.6 KiB
+  modules by path ./node_modules/webpack-dev-server/client/ 91.6 KiB 8 modules
+  ./src/index.ts 39 bytes [built] [code generated] [1 error]
+  ./node_modules/.federation/entry.fc9ce6fda237ed799ab2818ff37837ac.js 995 bytes [built] [code generated]
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  ../../node_modules/webpack/hot/log.js 1.73 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/log-apply-result.js 1.43 KiB [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi-html-community/index.js 4.16 KiB [built] [code generated]
+
+ERROR in ./src/index.ts
+Module build failed (from ../../node_modules/ts-loader/index.js):
+TypeError: Cannot read prope
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
-<summary>Tool use: **copilot_listDirectory**</summary>
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
 
 Read `@mf-types`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\@mf-types`
+
+**Result:**
+
+```
+index.d.ts
+remoteReact/
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
-<summary>Tool use: **copilot_listDirectory**</summary>
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
 
 Read `remoteReact`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\@mf-types\remoteReact`
+
+**Result:**
+
+```
+apis.d.ts
+compiled-types/
+Widget.d.ts
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `index.d.ts`
+
+**Input:**
+
+- endLine: `40`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\@mf-types\index.d.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+import type { PackageType as PackageType_0,RemoteKeys as RemoteKeys_0 } from './remoteReact/apis.d.ts';
+    declare module "@module-federation/runtime" {
+      type RemoteKeys = RemoteKeys_0;
+      type PackageType<T, Y=any> = T extends RemoteKeys_0 ? PackageType_0<T> :
+Y ;
+      export function loadRemote<T extends RemoteKeys,Y>(packageName: T): Promise<PackageType<T, Y>>;
+      export function loadRemote<T extends string,Y>(packageName: T): Promise<PackageType<T, Y>>;
+    }
+declare module "@module-federation/enhanced/runtime" {
+      type RemoteKeys = RemoteKeys_0;
+      type PackageType<T, Y=any> = T extends RemoteKeys_0 ? PackageType_0<T> :
+Y ;
+      export function loadRemote<T extends RemoteKeys,Y>(packageName: T): Promise<PackageType<T, Y>>;
+      export function loadRemote<T extends string,Y>(packageName: T): Promise<PackageType<T, Y>>;
+    }
+declare module "@module-federation/runtime-tools" {
+      type RemoteKeys = RemoteKeys_0;
+      type PackageType<T, Y=any> = T extends RemoteKeys_0 ? PackageType_0<T> :
+Y ;
+      export function loadRemote<T extends RemoteKeys,Y>(packageName: T): Promise<PackageType<T, Y>>;
+      export function loadRemote<T extends string,Y>(packageName: T): Promise<PackageType<T, Y>>;
+    }
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `apis.d.ts`
+
+**Input:**
+
+- endLine: `20`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\@mf-types\remoteReact\apis.d.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+
+    export type RemoteKeys = 'remoteReact/Widget';
+    type PackageType<T> = T extends 'remoteReact/Widget' ? typeof import('remoteReact/Widget') :any;
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1926,6 +2996,51 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **get_terminal_output**</summary>
 
 Checked terminal output
+
+**Input:**
+
+- id: `4ba6ebde-1b08-4713-ba82-3405e2d2cf34`
+
+**Result:**
+
+```
+Output of terminal 4ba6ebde-1b08-4713-ba82-3405e2d2cf34:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4010/, http://[::1]:4010/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4010/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\public' directory
+[ Module Federation DTS ] Federated types extraction completed
+assets by path *.json 1.07 KiB
+  asset mf-manifest.json 547 bytes [emitted]
+  asset mf-stats.json 547 bytes [emitted]
+asset main.js 541 KiB [emitted] (name: main)
+asset index.html 931 bytes [emitted]
+runtime modules 30.7 KiB 16 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ./ 92.6 KiB
+  modules by path ./node_modules/webpack-dev-server/client/ 91.6 KiB 8 modules
+  ./src/index.ts 39 bytes [built] [code generated] [1 error]
+  ./node_modules/.federation/entry.fc9ce6fda237ed799ab2818ff37837ac.js 995 bytes [built] [code generated]
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  ../../node_modules/webpack/hot/log.js 1.73 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/log-apply-result.js 1.43 KiB [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi-html-community/index.js 4.16 KiB [built] [code generated]
+
+ERROR in ./src/index.ts
+Module build failed (from ../../node_modules/ts-loader/index.js):
+TypeEr
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1948,10 +3063,45 @@ Good, all  references are commented out. Retrying :
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `webpack.config.ts`, lines 30 to 54
+
+**Input:**
+
+- endLine: `55`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js\webpack.config.ts`
+- startLine: `30`
+
+**Result:**
+
+```
+    headers: { "Access-Control-Allow-Origin": "*" },
+  },
+  output: {
+    publicPath: "http://localhost:4001/",
+    path: path.resolve(__dirname, "dist"),
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: "./public/index.html",
+    }),
+    new ModuleFederationPlugin({
+      name: "remoteJs",
+      filename: "remoteEntry.js",
+      exposes: {
+        "./Widget": "./src/Widget.ts",
+      },
+      dts: {
+        generateTypes: true,
+      },
+    }),
+  ],
+};
+
+export default config;
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1960,10 +3110,39 @@ Found the real bug:  has  — a copy-paste collision with 's container name. Bot
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
-<summary>Tool use: **copilot_readFile**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
 
 Read `webpack.config.ts`, lines 33 to 50
+
+**Input:**
+
+- endLine: `50`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\webpack.config.ts`
+- startLine: `33`
+
+**Result:**
+
+```
+    publicPath: "http://localhost:4002/",
+    path: path.resolve(__dirname, "dist"),
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: "./public/index.html",
+    }),
+    new ModuleFederationPlugin({
+      name: "remoteJs",
+      filename: "remoteEntry.js",
+      exposes: {
+        "./Widget": "./src/Widget.tsx",
+      },
+      dts: {
+        generateTypes: true,
+      },
+    }),
+  ],
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -1992,6 +3171,51 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **kill_terminal**</summary>
 
 Killed terminal
+
+**Input:**
+
+- id: `7f91fa24-1329-4a1c-96a2-012d742b42e5`
+
+**Result:**
+
+```
+Successfully killed persistent terminal 7f91fa24-1329-4a1c-96a2-012d742b42e5. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+
+> remote-react@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4002/, http://[::1]:4002/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4002/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 2.24 MiB
+  asset main.js 1.66 MiB [emitted] (name: main)
+  asset remoteEntry.js 543 KiB [emitted] (name: remoteJs)
+  asset vendors-node_modules_react_index_js.js 49.4 KiB [emitted] (id hint: vendors)
+  asset __federation_expose_Widget.js 1.56 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.9 KiB
+  asset mf-stats.json 999 bytes [emitted]
+  asset mf-manifest.json 944 bytes [emitted]
+asset @mf-types.zip 614 bytes [emitted]
+asset index.html 379 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.5 KiB 30 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB 4 modules
+modules by path ../../node_modules/react-dom/ 1.04 MiB 4 modules
+modules by path ./ 1.37 KiB 3 modules
+modules by path ../../node_modules/react/ 46.3 KiB
+  ../../node_modules/react/index.js 186 bytes [built] [code generated]
+  ../../node_modules/react/cjs/react.development.js 46.1 KiB [built] [code generated]
+modules by path ../../node_modules/scheduler/ 12 KiB
+  ../../no
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -2000,6 +3224,50 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **kill_terminal**</summary>
 
 Killed terminal
+
+**Input:**
+
+- id: `4ba6ebde-1b08-4713-ba82-3405e2d2cf34`
+
+**Result:**
+
+```
+Successfully killed persistent terminal 4ba6ebde-1b08-4713-ba82-3405e2d2cf34. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4010/, http://[::1]:4010/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4010/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\public' directory
+[ Module Federation DTS ] Federated types extraction completed
+assets by path *.json 1.07 KiB
+  asset mf-manifest.json 547 bytes [emitted]
+  asset mf-stats.json 547 bytes [emitted]
+asset main.js 541 KiB [emitted] (name: main)
+asset index.html 931 bytes [emitted]
+runtime modules 30.7 KiB 16 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ./ 92.6 KiB
+  modules by path ./node_modules/webpack-dev-server/client/ 91.6 KiB 8 modules
+  ./src/index.ts 39 bytes [built] [code generated] [1 error]
+  ./node_modules/.federation/entry.fc9ce6fda237ed799ab2818ff37837ac.js 995 bytes [built] [code generated]
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  ../../node_modules/webpack/hot/log.js 1.73 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/log-apply-result.js 1.43 KiB [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi-html-community/index.js 4.16 KiB [built] [code generated]
+
+ERROR in ./src/index.ts
+Module build faile
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -2008,6 +3276,53 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **run_in_terminal**</summary>
 
 Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Restart remote-react dev server with the corrected container name.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=3c05e842-22f6-4810-88ad-8e4e7e63cf38
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+
+> remote-react@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4002/, http://[::1]:4002/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4002/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 2.24 MiB
+  asset main.js 1.66 MiB [emitted] (name: main)
+  asset remoteEntry.js 543 KiB [emitted] (name: remoteReact)
+  asset vendors-node_modules_react_index_js.js 49.4 KiB [emitted] (id hint: vendors)
+  asset __federation_expose_Widget.js 1.56 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.93 KiB
+  asset mf-stats.json 1010 bytes [emitted]
+  asset mf-manifest.json 959 bytes [emitted]
+asset @mf-types.zip 614 bytes [emitted]
+asset index.html 379 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.5 KiB 30 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB 4 modules
+modules by path ../../node_modules/react-dom/ 1.04 MiB 4 modules
+modules by path ./ 1.37 KiB 3 modules
+modules by path ../../node_modules/react/ 46.3 KiB
+  ../../node_modules/react/index.js 186 bytes [built] [code generated]
+  ../../node_modules/react/cjs/react.development.js 46.1 KiB [built] [code generated]
+modules by path ../../node_modules/scheduler/ 12 KiB
+  ../../node_modules/scheduler/index.js 194 bytes [built] [code generated]
+  ../.
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -2032,14 +3347,71 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **run_in_terminal**</summary>
 
 Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Clear stale generated types and restart shell-dynamic to re-extract types for both remotes now that the name collision is fixed.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && rm -rf @mf-types && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=4a2937c5-0053-4944-b70b-cfb87f97bf43
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && rm -rf @mf-types && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4010/, http://[::1]:4010/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4010/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\public' directory
+[ Module Federation DTS ] Federated types extraction completed
+assets by path *.json 1.07 KiB
+  asset mf-manifest.json 547 bytes [emitted]
+  asset mf-stats.json 547 bytes [emitted]
+asset main.js 541 KiB [emitted] (name: main)
+asset index.html 931 bytes [emitted]
+runtime modules 30.7 KiB 16 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ./ 92.6 KiB
+  modules by path ./node_modules/webpack-dev-server/client/ 91.6 KiB 8 modules
+  ./src/index.ts 39 bytes [built] [code generated] [1 error]
+  ./node_modules/.federation/entry.fc9ce6fda237ed799ab2818ff37837ac.js 995 bytes [built] [code generated]
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  ../../node_modules/webpack/hot/log.js 1.73 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/log-apply-result.js 1.43 KiB [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi-html-community/index.js 4.16 KiB [built] [code generated]
+
+ERROR in ./src/index.ts
+Module build failed (from ../../node_modules/ts-loader/index.js):
+TypeErro
+… (output truncated)
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
 
-<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
-<summary>Tool use: **copilot_listDirectory**</summary>
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
 
 Read `@mf-types`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\@mf-types`
+
+**Result:**
+
+```
+index.d.ts
+remoteReact/
+```
 </details></tool-use>
 
 _**Agent (copilot/claude-sonnet-5)**_
@@ -2048,4 +3420,1133 @@ _**Agent (copilot/claude-sonnet-5)**_
 <summary>Tool use: **run_in_terminal**</summary>
 
 Running ` curl -sS -o /dev/null -w "remoteJs api: %\{http\_code\}\\n" http://localhost:400...`
+
+Verify both remotes' type manifest URLs are reachable to rule out a network/URL issue.
+
+```bash
+curl -sS -o /dev/null -w "remoteJs api: %{http_code}\n" http://localhost:4001/@mf-types.d.ts; curl -sS -o /dev/null -w "remoteJs zip: %{http_code}\n" http://localhost:4001/@mf-types.zip; curl -sS -o /dev/null -w "remoteReact api: %{http_code}\n" http://localhost:4002/@mf-types.d.ts; curl -sS -o /dev/null -w "remoteReact zip: %{http_code}\n" http://localhost:4002/@mf-types.zip
+```
+
+**Result:**
+
+```
+remoteJs api: 200
+remoteJs zip: 200
+remoteReact api: 200
+remoteReact zip: 200
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+<summary>Tool use: **grep_search**</summary>
+
+Searched for regex `consumeArchiveTypes|downloadAPITypes|remoteAliasMap|hostRemoteTypesFolder|consumeTypes\(` (`**/dts-plugin/dist/*.js`), 25 results
+
+**Input:**
+
+- includeIgnoredFiles: `true`
+- includePattern: `**/dts-plugin/dist/*.js`
+- isRegexp: `true`
+- query: `consumeArchiveTypes|downloadAPITypes|remoteAliasMap|hostRemoteTypesFolder|consumeTypes\(`
+
+**Result:**
+
+```
+Found 25 matches in 3 files for "consumeArchiveTypes|downloadAPITypes|remoteAliasMap|hostRemoteTypesFolder|consumeTypes\("
+
+experiments/module-federation-demo/node_modules/@module-federation/dts-plugin/dist/consumeTypes-DhrUgkUW.js
+207:async function consumeTypes(options) {
+208:	await new (require_expose_rpc.getDTSManagerConstructor(options.host?.implementation))(options).consumeTypes();
+
+experiments/module-federation-demo/node_modules/@module-federation/dts-plugin/dist/expose-rpc-jaGpsAVL.js
+838:		this.remoteAliasMap = {};
+964:	async downloadAPITypes(remoteInfo, destinationPath, hostOptions) {
+977:			require_Broker.fileLog(`success`, "downloadAPITypes", "info");
+980:			require_Broker.fileLog(`Unable to download "${remoteInfo.name}" api types, ${err}`, "downloadAPITypes", "error");
+1020:	async consumeArchiveTypes(options) {
+1024:			if (!this.remoteAliasMap[remoteInfo.alias]) {
+1026:				this.remoteAliasMap[remoteInfo.alias] = requiredRemoteInfo;
+1028:			return this.consumeTargetRemotes(hostOptions, this.remoteAliasMap[remoteInfo.alias]);
+1035:	async consumeTypes() {
+1041:			const { downloadPromisesResult, hostOptions } = await this.consumeArchiveTypes(options.host);
+1046:					const remoteInfo = this.remoteAliasMap[alias];
+1048:					await this.downloadAPITypes(remoteInfo, destinationPath, hostOptions);
+1067:				const { remoteAliasMap } = this;
+1070:				const loadedRemoteInfo = Object.values(remoteAliasMap).find((i) => i.name === remoteName);
+1078:					if (await this.downloadAPITypes(requiredRemoteInfo, destinationPath, hostOptions)) this.consumeAPITypes(hostOptions);
+1088:						if (!this.remoteAliasMap[remoteInfo.alias]) {
+1090:							this.remoteAliasMap[remoteInfo.alias] = requiredRemoteInfo;
+1092:						await consumeTypes(this.remoteAliasMap[remoteInfo.alias]);
+1095:							await consumeTypes(this.updatedRemoteInfos[updatedRemoteInfo.name]);
+1110:				} else await consumeTypes(loadedRemoteInfo);
+1264:	hostRemoteTypesFolder: "@mf-types",
+
+experiments/module-federation-d
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `expose-rpc-jaGpsAVL.js`, lines 960 to 1120
+
+**Input:**
+
+- endLine: `1120`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\@module-federation\dts-plugin\dist\expose-rpc-jaGpsAVL.js`
+- startLine: `960`
+
+**Result:**
+
+```
+	async consumeTargetRemotes(hostOptions, remoteInfo) {
+		if (!remoteInfo.zipUrl) throw new Error(`Can not get ${remoteInfo.name}'s types archive url!`);
+		return downloadTypesArchive(hostOptions)([remoteInfo.alias, remoteInfo.zipUrl]);
+	}
+	async downloadAPITypes(remoteInfo, destinationPath, hostOptions) {
+		const { apiTypeUrl } = remoteInfo;
+		if (!apiTypeUrl) return;
+		try {
+			let apiTypeFile = (await nativeFetch(apiTypeUrl, {
+				timeout: hostOptions.timeout,
+				family: hostOptions.family
+			})).data;
+			apiTypeFile = apiTypeFile.replaceAll(REMOTE_ALIAS_IDENTIFIER, remoteInfo.alias);
+			const filePath = path.default.join(destinationPath, REMOTE_API_TYPES_FILE_NAME);
+			fs.default.writeFileSync(filePath, apiTypeFile);
+			const existed = this.loadedRemoteAPIAlias.has(remoteInfo.alias);
+			this.loadedRemoteAPIAlias.add(remoteInfo.alias);
+			require_Broker.fileLog(`success`, "downloadAPITypes", "info");
+			return existed;
+		} catch (err) {
+			require_Broker.fileLog(`Unable to download "${remoteInfo.name}" api types, ${err}`, "downloadAPITypes", "error");
+		}
+	}
+	consumeAPITypes(hostOptions) {
+		const apiTypeFileName = path.default.join(hostOptions.context, hostOptions.typesFolder, HOST_API_TYPES_FILE_NAME);
+		try {
+			const existedFile = fs.default.readFileSync(apiTypeFileName, "utf-8");
+			new _module_federation_third_party_dts_extractor.ThirdPartyExtractor({ destDir: "" }).collectTypeImports(existedFile).forEach((existedImport) => {
+				const alias = existedImport.split("./").slice(1).join("./").replace("/apis.d.ts", "");
+				this.loadedRemoteAPIAlias.add(alias);
+			});
+		} catch (err) {}
+		if (!this.loadedRemoteAPIAlias.size) return;
+		const packageTypes = [];
+		const remoteKeys = [];
+		const importTypeStr = [...this.loadedRemoteAPIAlias].sort().map((alias, index) => {
+			const remoteKey = `RemoteKeys_${index}`;
+			const packageType = `PackageType_${index}`;
+			packageTypes.push(`T extends ${remoteKey} ? ${packageType}<T>`);
+			remoteKeys.push(remoteKey);
+			retu
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="search" data-tool-name="grep_search"><details>
+<summary>Tool use: **grep_search**</summary>
+
+Searched for regex `function retrieveHostConfig|mapRemotesToDownload|requestRemoteManifest\(` (`**/dts-plugin/dist/expose-rpc-jaGpsAVL.js`), 11 results
+
+**Input:**
+
+- includeIgnoredFiles: `true`
+- includePattern: `**/dts-plugin/dist/expose-rpc-jaGpsAVL.js`
+- isRegexp: `true`
+- query: `function retrieveHostConfig|mapRemotesToDownload|requestRemoteManifest\(`
+
+**Result:**
+
+```
+Found 11 matches in 1 file for "function retrieveHostConfig|mapRemotesToDownload|requestRemoteManifest\("
+
+experiments/module-federation-demo/node_modules/@module-federation/dts-plugin/dist/expose-rpc-jaGpsAVL.js
+817:		mapRemotesToDownload: resolveRemotes(hostOptions)
+924:	async requestRemoteManifest(remoteInfo, hostOptions) {
+1021:		const { hostOptions, mapRemotesToDownload } = retrieveHostConfig(options);
+1022:		const downloadPromises = Object.entries(mapRemotesToDownload).map(async (item) => {
+1025:				const requiredRemoteInfo = await this.requestRemoteManifest(remoteInfo, hostOptions);
+1039:			const { mapRemotesToDownload } = retrieveHostConfig(options.host);
+1040:			if (!Object.keys(mapRemotesToDownload).length) return;
+1069:				const { hostOptions, mapRemotesToDownload } = retrieveHostConfig(this.options.host);
+1083:					const remoteInfo = Object.values(mapRemotesToDownload).find((item) => {
+1089:							const requiredRemoteInfo = await this.requestRemoteManifest(remoteInfo, hostOptions);
+1104:							this.updatedRemoteInfos[updatedRemoteInfo.name] = await this.requestRemoteManifest(parsedRemoteInfo, hostOptions);
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `expose-rpc-jaGpsAVL.js`, lines 760 to 960
+
+**Input:**
+
+- endLine: `960`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\@module-federation\dts-plugin\dist\expose-rpc-jaGpsAVL.js`
+- startLine: `760`
+
+**Result:**
+
+```
+	if (!apiTypeUrl && zipUrl && (remoteTypeUrl || shouldResolveTypeUrlsByConvention)) apiTypeUrl = buildApiTypeUrl(zipUrl);
+	return {
+		name,
+		url,
+		zipUrl,
+		apiTypeUrl,
+		alias: remoteAlias
+	};
+};
+const resolveRemotes = (hostOptions) => {
+	const parsedOptions = _module_federation_managers.utils.parseOptions(hostOptions.moduleFederationConfig.remotes || {}, (item, key) => ({
+		remote: Array.isArray(item) ? item[0] : item,
+		key
+	}), (item, key) => ({
+		remote: Array.isArray(item.external) ? item.external[0] : item.external,
+		key
+	}));
+	const remoteTypeUrls = hostOptions.remoteTypeUrls ?? {};
+	if (typeof remoteTypeUrls !== "object") throw new Error("remoteTypeUrls must be consumed before resolveRemotes");
+	const remoteInfos = Object.keys(remoteTypeUrls).reduce((sum, remoteName) => {
+		const { zip, api, alias } = remoteTypeUrls[remoteName];
+		sum[alias] = {
+			name: remoteName,
+			url: "",
+			zipUrl: zip,
+			apiTypeUrl: api,
+			alias: alias || remoteName
+		};
+		return sum;
+	}, {});
+	return parsedOptions.reduce((accumulator, item) => {
+		const { key, remote } = item[1];
+		const res = retrieveRemoteInfo({
+			hostOptions,
+			remoteAlias: key,
+			remote
+		});
+		if (accumulator[key]) {
+			accumulator[key] = {
+				...accumulator[key],
+				url: res.url,
+				apiTypeUrl: accumulator[key].apiTypeUrl || res.apiTypeUrl
+			};
+			return accumulator;
+		}
+		accumulator[key] = res;
+		return accumulator;
+	}, remoteInfos);
+};
+const retrieveHostConfig = (options) => {
+	validateOptions(options);
+	const hostOptions = {
+		...defaultOptions$1,
+		...options
+	};
+	return {
+		hostOptions,
+		mapRemotesToDownload: resolveRemotes(hostOptions)
+	};
+};
+
+//#endregion
+//#region src/core/constant.ts
+const REMOTE_ALIAS_IDENTIFIER = "REMOTE_ALIAS_IDENTIFIER";
+const REMOTE_API_TYPES_FILE_NAME = "apis.d.ts";
+const HOST_API_TYPES_FILE_NAME = "index.d.ts";
+
+//#endregion
+//#region src/core/lib/DTSManager.ts
+var DTSManager = class {
+	constructor(options) {
+		this.options = cloneDeepOptions(options);
+		this.run
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Found the actual bug:  keys the internal map by  — and I never set that  field, so all entries collapsed onto the same `undefined` key, with the last one (remoteReact) winning. Fixing: 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `webpack.config.js`, lines 1 to 14
+
+**Input:**
+
+- endLine: `14`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\webpack.config.js`
+- startLine: `1`
+
+**Result:**
+
+```
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { ModuleFederationPlugin } = require('@module-federation/enhanced/webpack');
+const remotesConfig = require('./public/remotes.config.json');
+
+// Reuse the same URLs the runtime fetches remotes.config.json for, so type
+// consumption stays in sync with the dynamically registered remotes.
+const remoteTypeUrls = Object.fromEntries(
+  Object.entries(remotesConfig).map(([name, entry]) => {
+    const baseUrl = entry.replace(/remoteEntry\.js$/, '');
+    return [name, { api: `${baseUrl}@mf-types.d.ts`, zip: `${baseUrl}@mf-types.zip` }];
+  }),
+);
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **webpack.config.js**</summary>
+
+@@ lines 8-11 @@
+
+```
+// `alias` must be set explicitly - the dts-plugin keys its internal remote
+// map by this field, not by the remoteTypeUrls object key.
+const remoteTypeUrls = Object.fromEntries(
+  Object.entries(remotesConfig).map(([name, entry]) => {
+    const baseUrl = entry.replace(/remoteEntry\.js$/, '');
+    return [name, { alias: name,
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Regenerate shell-dynamic's types with the alias fix and verify both remotes appear.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && rm -rf @mf-types && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=ba7ee98e-24dd-4506-becc-6b45b56b09d7
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && rm -rf @mf-types && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4010/, http://[::1]:4010/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4010/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\public' directory
+[ Module Federation DTS ] Federated types extraction completed
+assets by path *.json 1.07 KiB
+  asset mf-manifest.json 547 bytes [emitted]
+  asset mf-stats.json 547 bytes [emitted]
+asset main.js 541 KiB [emitted] (name: main)
+asset index.html 931 bytes [emitted]
+runtime modules 30.7 KiB 16 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ./ 92.6 KiB
+  modules by path ./node_modules/webpack-dev-server/client/ 91.6 KiB 8 modules
+  ./src/index.ts 39 bytes [built] [code generated] [1 error]
+  ./node_modules/.federation/entry.fc9ce6fda237ed799ab2818ff37837ac.js 995 bytes [built] [code generated]
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  ../../node_modules/webpack/hot/log.js 1.73 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/log-apply-result.js 1.43 KiB [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi-html-community/index.js 4.16 KiB [built] [code generated]
+
+ERROR in ./src/index.ts
+Module build failed (from ../../node_modules/ts-loader/index.js):
+TypeErro
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Both remotes are up on 4001/4002. Now start `shell-dynamic` to trigger type consumption. 
+
+This  module doesn't exist anywhere in the repo — a pre-existing broken reference (all its usages below are already commented out), unrelated to my change. Removing the dead import since nothing actually uses it: 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **webpack.config.js**</summary>
+
+@@ lines 4-5 @@ (deleted)
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Good, all  references are commented out. Retrying : 
+
+Found the real bug:  has  — a copy-paste collision with 's container name. Both remotes register under the same internal name, so Module Federation only keeps one, which is why only `remoteReact` types got extracted (and this would cause the same clash at runtime). 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **webpack.config.ts**</summary>
+
+@@ lines 41-41 @@
+
+```
+React
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Good — `remoteEntry.js` now correctly named . Now regenerate shell-dynamic's types: 
+
+Found the actual bug:  keys the internal map by  — and I never set that  field, so all entries collapsed onto the same `undefined` key, with the last one (remoteReact) winning. Fixing: 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **webpack.config.js**</summary>
+
+@@ lines 8-11 @@
+
+```
+// `alias` must be set explicitly - the dts-plugin keys its internal remote
+// map by this field, not by the remoteTypeUrls object key.
+const remoteTypeUrls = Object.fromEntries(
+  Object.entries(remotesConfig).map(([name, entry]) => {
+    const baseUrl = entry.replace(/remoteEntry\.js$/, '');
+    return [name, { alias: name,
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="kill_terminal"><details>
+<summary>Tool use: **kill_terminal**</summary>
+
+Killed terminal
+
+**Input:**
+
+- id: `4a2937c5-0053-4944-b70b-cfb87f97bf43`
+
+**Result:**
+
+```
+Successfully killed persistent terminal 4a2937c5-0053-4944-b70b-cfb87f97bf43. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && rm -rf @mf-types && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4010/, http://[::1]:4010/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4010/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\public' directory
+[ Module Federation DTS ] Federated types extraction completed
+assets by path *.json 1.07 KiB
+  asset mf-manifest.json 547 bytes [emitted]
+  asset mf-stats.json 547 bytes [emitted]
+asset main.js 541 KiB [emitted] (name: main)
+asset index.html 931 bytes [emitted]
+runtime modules 30.7 KiB 16 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ./ 92.6 KiB
+  modules by path ./node_modules/webpack-dev-server/client/ 91.6 KiB 8 modules
+  ./src/index.ts 39 bytes [built] [code generated] [1 error]
+  ./node_modules/.federation/entry.fc9ce6fda237ed799ab2818ff37837ac.js 995 bytes [built] [code generated]
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  ../../node_modules/webpack/hot/log.js 1.73 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/log-apply-result.js 1.43 KiB [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi-html-community/index.js 4.16 KiB [built] [code generated]
+
+ERROR in ./src/index.t
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
+
+Read `@mf-types`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\@mf-types`
+
+**Result:**
+
+```
+index.d.ts
+remoteJs/
+remoteReact/
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Both remotes now generate types correctly. Let's confirm the merged `index.d.ts`:  
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `index.d.ts`, lines 1 to 25
+
+**Input:**
+
+- endLine: `25`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\@mf-types\index.d.ts`
+- startLine: `1`
+
+**Result:**
+
+```
+import type { PackageType as PackageType_0,RemoteKeys as RemoteKeys_0 } from './remoteJs/apis.d.ts';
+import type { PackageType as PackageType_1,RemoteKeys as RemoteKeys_1 } from './remoteReact/apis.d.ts';
+    declare module "@module-federation/runtime" {
+      type RemoteKeys = RemoteKeys_0 | RemoteKeys_1;
+      type PackageType<T, Y=any> = T extends RemoteKeys_0 ? PackageType_0<T> :
+T extends RemoteKeys_1 ? PackageType_1<T> :
+Y ;
+      export function loadRemote<T extends RemoteKeys,Y>(packageName: T): Promise<PackageType<T, Y>>;
+      export function loadRemote<T extends string,Y>(packageName: T): Promise<PackageType<T, Y>>;
+    }
+declare module "@module-federation/enhanced/runtime" {
+      type RemoteKeys = RemoteKeys_0 | RemoteKeys_1;
+      type PackageType<T, Y=any> = T extends RemoteKeys_0 ? PackageType_0<T> :
+T extends RemoteKeys_1 ? PackageType_1<T> :
+Y ;
+      export function loadRemote<T extends RemoteKeys,Y>(packageName: T): Promise<PackageType<T, Y>>;
+      export function loadRemote<T extends string,Y>(packageName: T): Promise<PackageType<T, Y>>;
+    }
+declare module "@module-federation/runtime-tools" {
+      type RemoteKeys = RemoteKeys_0 | RemoteKeys_1;
+      type PackageType<T, Y=any> = T extends RemoteKeys_0 ? PackageType_0<T> :
+T extends RemoteKeys_1 ? PackageType_1<T> :
+Y ;
+      export function loadRemote<T extends RemoteKeys,Y>(packageName: T): Promise<PackageType<T, Y>>;
+      export function loadRemote<T extends string,Y>(packageName: T): Promise<PackageType<T, Y>>;
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+This module-augments  — the exact module `bootstrap.ts` imports  from — so  /  are now typed automatically, no generics needed. Let me clean up the running dev servers before wrapping up.   
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="kill_terminal"><details>
+<summary>Tool use: **kill_terminal**</summary>
+
+Killed terminal
+
+**Input:**
+
+- id: `ba7ee98e-24dd-4506-becc-6b45b56b09d7`
+
+**Result:**
+
+```
+Successfully killed persistent terminal ba7ee98e-24dd-4506-becc-6b45b56b09d7. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && rm -rf @mf-types && npm run dev
+
+> shell-dynamic@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4010/, http://[::1]:4010/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4010/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\public' directory
+[ Module Federation DTS ] Federated types extraction completed
+assets by path *.json 1.07 KiB
+  asset mf-manifest.json 547 bytes [emitted]
+  asset mf-stats.json 547 bytes [emitted]
+asset main.js 541 KiB [emitted] (name: main)
+asset index.html 931 bytes [emitted]
+runtime modules 30.7 KiB 16 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ./ 92.6 KiB
+  modules by path ./node_modules/webpack-dev-server/client/ 91.6 KiB 8 modules
+  ./src/index.ts 39 bytes [built] [code generated] [1 error]
+  ./node_modules/.federation/entry.fc9ce6fda237ed799ab2818ff37837ac.js 995 bytes [built] [code generated]
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  ../../node_modules/webpack/hot/log.js 1.73 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/log-apply-result.js 1.43 KiB [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi-html-community/index.js 4.16 KiB [built] [code generated]
+
+ERROR in ./src/index.t
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="kill_terminal"><details>
+<summary>Tool use: **kill_terminal**</summary>
+
+Killed terminal
+
+**Input:**
+
+- id: `58572316-9035-47f5-bdb7-3cab961a4fa2`
+
+**Result:**
+
+```
+Successfully killed persistent terminal 58572316-9035-47f5-bdb7-3cab961a4fa2. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+
+> remote-js@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4001/, http://[::1]:4001/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4001/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 1.06 MiB
+  asset remoteEntry.js 542 KiB [emitted] (name: remoteJs)
+  asset main.js 538 KiB [emitted] (name: main)
+  asset __federation_expose_Widget.js 1.88 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.79 KiB
+  asset mf-stats.json 941 bytes [emitted]
+  asset mf-manifest.json 887 bytes [emitted]
+asset @mf-types.zip 635 bytes [emitted]
+asset index.html 401 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.2 KiB 28 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  + 2 modules
+modules by path ./ 1.79 KiB
+  ./src/index.ts 87 bytes [built] [code generated]
+  ./node_modules/.federation/entry.3a4d2b6213f5c3067e845cf796913ca2.js 995 bytes [built] [code generated]
+  ./src/Widget.ts 756 bytes [built] [code generated]
+container entry 42 bytes [built] [code generated]
+../../node_module
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="kill_terminal"><details>
+<summary>Tool use: **kill_terminal**</summary>
+
+Killed terminal
+
+**Input:**
+
+- id: `3c05e842-22f6-4810-88ad-8e4e7e63cf38`
+
+**Result:**
+
+```
+Successfully killed persistent terminal 3c05e842-22f6-4810-88ad-8e4e7e63cf38. Final output before termination:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+
+> remote-react@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4002/, http://[::1]:4002/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4002/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 2.24 MiB
+  asset main.js 1.66 MiB [emitted] (name: main)
+  asset remoteEntry.js 543 KiB [emitted] (name: remoteReact)
+  asset vendors-node_modules_react_index_js.js 49.4 KiB [emitted] (id hint: vendors)
+  asset __federation_expose_Widget.js 1.56 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.93 KiB
+  asset mf-stats.json 1010 bytes [emitted]
+  asset mf-manifest.json 959 bytes [emitted]
+asset @mf-types.zip 614 bytes [emitted]
+asset index.html 379 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.5 KiB 30 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB 4 modules
+modules by path ../../node_modules/react-dom/ 1.04 MiB 4 modules
+modules by path ./ 1.37 KiB 3 modules
+modules by path ../../node_modules/react/ 46.3 KiB
+  ../../node_modules/react/index.js 186 bytes [built] [code generated]
+  ../../node_modules/react/cjs/react.development.js 46.1 KiB [built] [code generated]
+modules by path ../../node_modules/scheduler/ 12 KiB
+  ../
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Check which TypeScript version resolves for shell-dynamic to confirm the ts-loader crash is the same TS7/ts.sys incompatibility seen elsewhere.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/shells/shell-dynamic" && node -p "require('typescript/package.json').version"
+```
+
+**Result:**
+
+```
+5.9.3
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="memory"><details>
+<summary>Tool use: **memory**</summary>
+
+Read memory
+
+**Input:**
+
+- command: `view`
+- path: `/memories/repo`
+
+**Result:**
+
+```
+Here are the files and directories up to 2 levels deep in /memories/repo, excluding hidden items:
+9149	/memories/repo/retail-operations-portal-inventory.md
+6786	/memories/repo/structure.md
+983	/memories/repo/webpack-ts7-incompatibility.md
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="memory"><details>
+<summary>Tool use: **memory**</summary>
+
+Read memory `webpack-ts7-incompatibility.md`
+
+**Input:**
+
+- command: `view`
+- path: `/memories/repo/webpack-ts7-incompatibility.md`
+
+**Result:**
+
+```
+Here's the content of /memories/repo/webpack-ts7-incompatibility.md with line numbers:
+     1	# TypeScript 7.x breaks ts-loader / ts-node (module-federation-demo)
+     2	
+     3	- `experiments/module-federation-demo` pins `typescript: ^7.0.2` (native/Go-rewrite major).
+     4	- In this version `ts.sys` is `undefined` (classic Node API not exposed the same way).
+     5	- `ts-loader` and `ts-node` both read `ts.sys.fileExists` internally -> both fail with
+     6	  `TypeError: Cannot read properties of undefined (reading 'fileExists')`.
+     7	- Fix used: replace `ts-loader` with `esbuild-loader` (`{ loader: 'esbuild-loader', options: { loader: 'ts', target: 'es2020' } }`)
+     8	  in webpack module rules — esbuild strips types without touching the TS compiler API.
+     9	- For loading `webpack.config.ts` itself (webpack-cli's `--config` TS loader resolution), use `tsx`
+    10	  (not `ts-node`) — same reason, tsx uses esbuild under the hood.
+    11	- No `NODE_OPTIONS`/register flag needed manually; webpack-cli auto-detects `tsx/cjs` once installed
+    12	  as a devDependency in the repo (root node_modules, hoisted via npm workspaces).
+    13
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Repo memory confirms this is the same known TS7/ incompatibility already fixed elsewhere in this repo. Applying the same established fix (swap for ) to : 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `webpack.config.js`, lines 15 to 40
+
+**Input:**
+
+- endLine: `40`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\webpack.config.js`
+- startLine: `15`
+
+**Result:**
+
+```
+);
+
+module.exports = {
+  entry: './src/index.ts',
+  mode: 'development',
+  devServer: {
+    port: 4010,
+    static: { directory: path.resolve(__dirname, 'public') },
+  },
+  output: {
+    publicPath: 'http://localhost:4010/',
+    path: path.resolve(__dirname, 'dist'),
+  },
+  resolve: {
+    extensions: ['.ts', '.js'],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        exclude: /node_modules\/(?!@mfe)/,
+        use: { loader: 'ts-loader', options: { transpileOnly: true } },
+      },
+    ],
+  },
+  plugins: [
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="replace_string_in_file"><details>
+<summary>Tool use: **replace_string_in_file**</summary>
+
+Replace String in File
+
+**Input:**
+
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-dynamic\webpack.config.js`
+- newString:
+
+```
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        exclude: /node_modules\/(?!@mfe)/,
+        // ts-loader depends on ts.sys, which TypeScript 7 no longer exposes
+        loader: 'esbuild-loader',
+        options: { loader: 'ts', target: 'es2020' },
+      },
+    ],
+  },
+```
+
+- oldString:
+
+```
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        exclude: /node_modules\/(?!@mfe)/,
+        use: { loader: 'ts-loader', options: { transpileOnly: true } },
+      },
+    ],
+  },
+```
+
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+> ❓ Continue to iterate? — Copilot has been working on this problem for a while. It can continue to iterate, or you can send a new message to refine your prompt. `Configure max requests`.
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Completed: *Update shell-dynamic for remote types* (1/2)
+</details></tool-use>
+
+---
+
+_**User (2026-09-02 12:54:54Z)**_
+
+@agent Continue: "Continue to iterate?"
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **webpack.config.js**</summary>
+
+@@ lines 36-36 @@
+
+```
+// ts-loader depends on ts.sys, which TypeScript 7 no longer exposes
+        loader: 'esbuild-loader',
+        options: { loader: 'ts', target: 'es2020'
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Restart remote-js dev server.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=bf09a7c8-0e8c-4d5c-b783-4cf4ccde7dac
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+
+> remote-js@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4001/, http://[::1]:4001/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4001/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 1.06 MiB
+  asset remoteEntry.js 542 KiB [emitted] (name: remoteJs)
+  asset main.js 538 KiB [emitted] (name: main)
+  asset __federation_expose_Widget.js 1.88 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.79 KiB
+  asset mf-stats.json 941 bytes [emitted]
+  asset mf-manifest.json 887 bytes [emitted]
+asset @mf-types.zip 635 bytes [emitted]
+asset index.html 401 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.2 KiB 28 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  + 2 modules
+modules by path ./ 1.79 KiB
+  ./src/index.ts 87 bytes [built] [code generated]
+  ./node_modules/.federation/entry.3a4d2b6213f5c3067e845cf796913ca2.js 995 bytes [built] [code generated]
+  ./src/Widget.ts 756 bytes [built] [code generated]
+container entry 42 bytes [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+
+Restart remote-react dev server.
+
+```bash
+cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+```
+
+**Result:**
+
+```
+Command is running in terminal with ID=37552255-4baa-475a-978a-d30d2d4ee779
+ The command became idle with output:
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-react" && npm run dev
+
+> remote-react@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4002/, http://[::1]:4002/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4002/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-react\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 2.24 MiB
+  asset main.js 1.66 MiB [emitted] (name: main)
+  asset remoteEntry.js 543 KiB [emitted] (name: remoteReact)
+  asset vendors-node_modules_react_index_js.js 49.4 KiB [emitted] (id hint: vendors)
+  asset __federation_expose_Widget.js 1.56 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.93 KiB
+  asset mf-stats.json 1010 bytes [emitted]
+  asset mf-manifest.json 959 bytes [emitted]
+asset @mf-types.zip 614 bytes [emitted]
+asset index.html 379 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.5 KiB 30 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB 4 modules
+modules by path ../../node_modules/react-dom/ 1.04 MiB 4 modules
+modules by path ./ 1.37 KiB 3 modules
+modules by path ../../node_modules/react/ 46.3 KiB
+  ../../node_modules/react/index.js 186 bytes [built] [code generated]
+  ../../node_modules/react/cjs/react.development.js 46.1 KiB [built] [code generated]
+modules by path ../../node_modules/scheduler/ 12 KiB
+  ../../node_modules/scheduler/index.js 194 bytes [built] [code generated]
+  ../.
+… (output truncated)
+```
+</details></tool-use>
+
+---
+
+_**User (2026-09-02 12:55:47Z)**_
+
+Html Webpack Plugin:
+```
+Error: Child compilation failed:
+Module not found: Error: Can't resolve 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\html-webpack-plugin\lib\loader.js' in 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static'
+ModuleNotFoundError: Module not found: Error: Can't resolve 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\html-webpack-plugin\lib\loader.js' in 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\shells\shell-static'
+    at C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack\lib\Compilation.js:2349:28
+    at C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack\lib\NormalModuleFactory.js:1350:13
+    at eval (eval at create (C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\tapable\lib\HookCodeFactory.js:31:10), :23:1)
+    at C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack\lib\NormalModuleFactory.js:722:22
+    at eval (eval at create (C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\tapable\lib\HookCodeFactory.js:31:10), :9:1)
+    at C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack\lib\NormalModuleFactory.js:904:22
+    at C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack\lib\NormalModuleFactory.js:438:10
+    at C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack\lib\NormalModuleFactory.js:1152:23
+    at C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\webpack\lib\NormalModuleFactory.js:1885:5
+    at C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\node_modules\neo-async\async.js:2830:7
+```
+
+[Terminal bf09a7c8-0e8c-4d5c-b783-4cf4ccde7dac notification: command completed with exit code 130. Use send_to_terminal to send another command or kill_terminal to stop it.]
+Terminal output:
+
+ev45i@XPS17 MINGW64 /c/Projects/bottega-frontend-architecture-rossmann (main)
+$  cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-federation-demo/remotes/remote-js" && npm run dev
+
+> remote-js@1.0.0 dev
+> webpack serve
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:4001/, http://[::1]:4001/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.68.125:4001/
+<i> [webpack-dev-server] Content not from webpack is served from 'C:\Projects\bottega-frontend-architecture-rossmann\experiments\module-federation-demo\remotes\remote-js\public' directory
+[ Module Federation DTS ] Federated types created correctly
+assets by path *.js 1.06 MiB
+  asset remoteEntry.js 542 KiB [emitted] (name: remoteJs)
+  asset main.js 538 KiB [emitted] (name: main)
+  asset __federation_expose_Widget.js 1.88 KiB [emitted] (name: __federation_expose_Widget)
+assets by path *.json 1.79 KiB
+  asset mf-stats.json 941 bytes [emitted]
+  asset mf-manifest.json 887 bytes [emitted]
+asset @mf-types.zip 635 bytes [emitted]
+asset index.html 401 bytes [emitted]
+asset @mf-types.d.ts 188 bytes [emitted]
+runtime modules 60.2 KiB 28 modules
+modules by path ../../node_modules/@module-federation/ 199 KiB 78 modules
+modules by path ../../node_modules/webpack-dev-server/client/ 91.9 KiB 8 modules
+modules by path ../../node_modules/webpack/hot/*.js 5.71 KiB
+  ../../node_modules/webpack/hot/dev-server.js 2.48 KiB [built] [code generated]
+  ../../node_modules/webpack/hot/emitter.js 75 bytes [built] [code generated]
+  + 2 modules
+modules by path ./ 1.79 KiB
+  ./src/index.ts 87 bytes [built] [code generated]
+  ./node_modules/.federation/entry.3a4d2b6213f5c3067e845cf796913ca2.js 995 bytes [built] [code generated]
+  ./src/Widget.ts 756 bytes [built] [code generated]
+container entry 42 bytes [built] [code generated]
+../../node_modules/events/events.js 14.5 KiB [built] [code generated]
+../../node_modules/ansi-html-community/index.js 4.16 KiB [built] [code generated]
+webpack 5.110.3 compiled successfully in 2382 ms
+<i> [webpack-dev-server] Gracefully shutting down. To force exit, press ^C again. Please wait...
+
+                                                                                                                                                                                          
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
+<summary>Tool use: **copilot_listDirectory**</summary>
+
+Read `html-webpack-plugin`
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
+<summary>Tool use: **copilot_listDirectory**</summary>
+
+Read `node_modules`
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="copilot_listDirectory"><details>
+<summary>Tool use: **copilot_listDirectory**</summary>
+
+Read `lib`
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd "c:/Projects/bottega-frontend-architecture-rossmann/experiments/module-fe...`
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="copilot_readFile"><details>
+<summary>Tool use: **copilot_readFile**</summary>
+
+Read `package.json`, lines 1 to 10
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` netstat -ano | grep ":4000" | grep LISTENING`
 </details></tool-use>

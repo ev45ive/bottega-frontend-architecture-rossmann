@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently -n shell,remote -c blue,green \"npm run dev -w shell-static\" \"npm run dev -w remote-js\""
+    "dev": "concurrently -n shell,remote -c blue,green \"npm run dev -w shell-dynamic\" \"npm run dev -w remote-js\""
   },
   "workspaces": [
     "libs/*",
