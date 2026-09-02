@@ -25,6 +25,7 @@ export { listCustomerSegments } from "./api/customerSegments";
 export { pricingRulesSlice, setPricingRules, upsertPricingRule } from "./store/pricingRulesSlice";
 export { promotionsSlice, setPromotions, upsertPromotion } from "./store/promotionsSlice";
 export { customerSegmentsSlice, setCustomerSegments } from "./store/customerSegmentsSlice";
+export { categoryRefsSlice, setCategoryRefs } from "./store/categoryRefsSlice";
 
 export { PricingRuleForm } from "./components/PricingRuleForm";
 export { PromotionStatusTimeline } from "./components/PromotionStatusTimeline";

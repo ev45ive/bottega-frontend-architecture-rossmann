@@ -1,7 +1,9 @@
 export type { Product, Category } from "./types";
+export type { CategoryRef } from "./acl/categoryRef";
 
 export { listProducts, getProduct, updateProduct, importProductsFromCsv, exportProducts } from "./api/products";
 export { listCategories } from "./api/categories";
+export { listCategoryRefs } from "./acl/categoryRef";
 
 export { productsSlice, setProducts, upsertProduct } from "./store/productsSlice";
 export { categoriesSlice, setCategories } from "./store/categoriesSlice";

@@ -13,11 +13,12 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
-import { ProductPicker, listProducts, listCategories, setProducts, setCategories } from "@/modules/product-catalog";
+import { ProductPicker, listProducts, listCategoryRefs, setProducts } from "@/modules/product-catalog";
 import { PricingRuleForm } from "../components/PricingRuleForm";
 import { listPricingRules, addPricingRule } from "../api/pricingRules";
 import { createPromotion, submitPromotionForValidation } from "../api/promotions";
 import { setPricingRules, upsertPricingRule } from "../store/pricingRulesSlice";
+import { setCategoryRefs } from "../store/categoryRefsSlice";
 import { upsertPromotion } from "../store/promotionsSlice";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import { useLoadList } from "@/shared/store/useLoadList";
@@ -29,8 +30,8 @@ export function PromotionWizardPage() {
 
   const products = useAppSelector((s) => s.products.items);
   useLoadList(useAppSelector((s) => s.products.loaded), listProducts, setProducts);
-  const categories = useAppSelector((s) => s.categories.items);
-  useLoadList(useAppSelector((s) => s.categories.loaded), listCategories, setCategories);
+  const categories = useAppSelector((s) => s.categoryRefs.items);
+  useLoadList(useAppSelector((s) => s.categoryRefs.loaded), listCategoryRefs, setCategoryRefs);
   const pricingRules = useAppSelector((s) => s.pricingRules.items);
   useLoadList(useAppSelector((s) => s.pricingRules.loaded), listPricingRules, setPricingRules);
 

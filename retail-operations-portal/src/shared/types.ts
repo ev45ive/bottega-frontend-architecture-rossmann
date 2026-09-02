@@ -1,5 +1,11 @@
 // Generic cross-module primitives. Domain-specific DTOs live in each module's own types.ts.
+
 export type ID = string;
+export type ProductID = string;
+export type UserID = string;
+
+// function getUser(id: UserID) {}
+// function getProduct(id: ProductID) {}
 
 // Structural (vs Nominal) Type System (Duck Typing)
 
@@ -19,4 +25,3 @@ export type ID = string;
 
 // p = v; // Covariant
 // v = p;
-

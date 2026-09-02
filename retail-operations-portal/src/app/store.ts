@@ -1,6 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { productsSlice, categoriesSlice } from "@/modules/product-catalog";
-import { pricingRulesSlice, promotionsSlice, customerSegmentsSlice } from "@/modules/product-pricing";
+import {
+  pricingRulesSlice,
+  promotionsSlice,
+  customerSegmentsSlice,
+  categoryRefsSlice,
+} from "@/modules/product-pricing";
 import { ordersSlice, returnsSlice, suppliersSlice, warehouseSlice } from "@/modules/sales-fulfilment";
 import {
   auditLogSlice,
@@ -21,6 +26,7 @@ export const store = configureStore({
     pricingRules: pricingRulesSlice.reducer,
     promotions: promotionsSlice.reducer,
     customerSegments: customerSegmentsSlice.reducer,
+    categoryRefs: categoryRefsSlice.reducer,
     returns: returnsSlice.reducer,
     notifications: notificationsSlice.reducer,
     auditLog: auditLogSlice.reducer,

@@ -6,9 +6,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/compo
 import { DataTable } from "@/shared/components/DataTable";
 import { PricingRuleForm } from "../components/PricingRuleForm";
 import { listPricingRules, addPricingRule } from "../api/pricingRules";
-import { listCategories } from "@/modules/product-catalog";
+import { listCategoryRefs } from "@/modules/product-catalog";
 import { setPricingRules, upsertPricingRule } from "../store/pricingRulesSlice";
-import { setCategories } from "@/modules/product-catalog";
+import { setCategoryRefs } from "../store/categoryRefsSlice";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import { useLoadList } from "@/shared/store/useLoadList";
 
@@ -18,8 +18,8 @@ export function PricingRulesPage() {
   const dispatch = useAppDispatch();
   const rules = useAppSelector((s) => s.pricingRules.items);
   useLoadList(useAppSelector((s) => s.pricingRules.loaded), listPricingRules, setPricingRules);
-  const categories = useAppSelector((s) => s.categories.items);
-  useLoadList(useAppSelector((s) => s.categories.loaded), listCategories, setCategories);
+  const categories = useAppSelector((s) => s.categoryRefs.items);
+  useLoadList(useAppSelector((s) => s.categoryRefs.loaded), listCategoryRefs, setCategoryRefs);
 
   const [open, setOpen] = useState(false);
   const categoryName = (id?: string) => categories.find((c) => c.id === id)?.name ?? "Wszystkie";

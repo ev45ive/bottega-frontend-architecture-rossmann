@@ -1,6 +1,6 @@
 # Handoff: Category → CategoryRef OHS export (Catalog → Pricing decoupling)
 
-> Status: Phase 1 done. Phases 2–3 not started.
+> Status: Phase 1, 2, 3 done.
 > Related: [ADR-0001](../adr/0001-category-ref-open-host-service.md), [ADR-0000](../adr/0000-podzial-na-moduly-domenowe.md), [context-map.md](../context-map/context-map.md) (hotspot: Catalog→Pricing raw ID, no ACL).
 
 ## Goal
@@ -29,44 +29,44 @@ Implemented as a **separate ACL mapper file**, without touching existing interna
 Nothing else was changed — `product-pricing`'s pages still read the full `Category` type and
 Catalog's own `categoriesSlice` directly (this is what Phase 3 fixes).
 
-## Phase 2 — NOT STARTED
+## Phase 2 — DONE
 
-Give `product-pricing` its own slice for `CategoryRef`, decoupled from Catalog's `categoriesSlice`
+Gave `product-pricing` its own slice for `CategoryRef`, decoupled from Catalog's `categoriesSlice`
 in the global store:
 
-1. New file `product-pricing/store/categoryRefsSlice.ts`:
-   `createListSlice<CategoryRef>("categoryRefs")`, export `setCategoryRefs` (mirror the pattern in
+1. Created [product-pricing/store/categoryRefsSlice.ts](../../retail-operations-portal/src/modules/product-pricing/store/categoryRefsSlice.ts):
+   `createListSlice<CategoryRef>("categoryRefs")`, exports `setCategoryRefs` (mirrors the pattern in
    `product-catalog/store/categoriesSlice.ts`).
-2. `product-pricing/index.ts` — export the new slice/action.
-3. `app/store.ts` — register `categoryRefs: categoryRefsSlice.reducer` (import from
-   `@/modules/product-pricing`). **Do not remove** the existing `categories: categoriesSlice.reducer`
-   entry — it's still owned/used by Catalog's own pages (`CategoriesPage.tsx`, `ProductsPage.tsx`).
+2. [product-pricing/index.ts](../../retail-operations-portal/src/modules/product-pricing/index.ts) — exports the new slice/action.
+3. [app/store.ts](../../retail-operations-portal/src/app/store.ts) — registered `categoryRefs: categoryRefsSlice.reducer` (imported from
+   `@/modules/product-pricing`). The existing `categories: categoriesSlice.reducer` entry was kept
+   — still owned/used by Catalog's own pages (`CategoriesPage.tsx`, `ProductsPage.tsx`).
 
-## Phase 3 — NOT STARTED
+## Phase 3 — DONE
 
-Switch the two `product-pricing` consumers from `Category`/`listCategories`/`s.categories.items`
+Switched the two `product-pricing` consumers from `Category`/`listCategories`/`s.categories.items`
 to `CategoryRef`/`listCategoryRefs`/`s.categoryRefs.items`:
 
-1. `product-pricing/components/PricingRuleForm.tsx` — prop type `categories: Category[]` →
-   `categories: CategoryRef[]`; swap the `Category` import for `CategoryRef`.
-2. `product-pricing/pages/PricingRulesPage.tsx` — swap `listCategories`/`setCategories` (from
-   `@/modules/product-catalog`) for `listCategoryRefs`/`setCategoryRefs` (new slice, from
-   `@/modules/product-pricing`); swap `useAppSelector(s => s.categories.items)` for
-   `useAppSelector(s => s.categoryRefs.items)`.
-3. `product-pricing/pages/PromotionWizardPage.tsx` — same swap as step 2 (it loads categories only
+1. [product-pricing/components/PricingRuleForm.tsx](../../retail-operations-portal/src/modules/product-pricing/components/PricingRuleForm.tsx) — prop type `categories: Category[]` →
+   `categories: CategoryRef[]`; swapped the `Category` import for `CategoryRef`.
+2. [product-pricing/pages/PricingRulesPage.tsx](../../retail-operations-portal/src/modules/product-pricing/pages/PricingRulesPage.tsx) — swapped `listCategories`/`setCategories` (from
+   `@/modules/product-catalog`) for `listCategoryRefs` (from `@/modules/product-catalog`) /
+   `setCategoryRefs` (new slice, from local `../store/categoryRefsSlice`); swapped
+   `useAppSelector(s => s.categories.items)` for `useAppSelector(s => s.categoryRefs.items)`.
+3. [product-pricing/pages/PromotionWizardPage.tsx](../../retail-operations-portal/src/modules/product-pricing/pages/PromotionWizardPage.tsx) — same swap as step 2 (it loads categories only
    to pass into the embedded `PricingRuleForm` "new rule" dialog).
 
 `PricingRule.categoryId` field type is unchanged (`ID`, unbranded) — no edits needed there.
 
-## Verification checklist for Phase 2/3
+## Verification checklist for Phase 2/3 — completed
 
-1. `npm run lint` — `boundaries/dependencies` rule must still pass (product-pricing only imports
-   from product-catalog's public `index.ts`).
-2. Type-check — no errors after the prop/type swaps.
-3. Manual: `/pricing-rules` and `/promotions/new` — category dropdown + column still populate and
-   filter correctly.
-4. Grep `product-pricing` for `Category` (not `CategoryRef`) — should return zero matches once
-   Phase 3 is done, confirming the full-aggregate import is gone.
+1. `npm run lint` — 0 errors (4 pre-existing `react-refresh` warnings in unrelated `shared/components/ui`
+   files). `boundaries/dependencies` rule passes.
+2. `npx tsc --noEmit -p tsconfig.app.json` — no errors.
+3. Manual verification of `/pricing-rules` and `/promotions/new` — not performed in this session (no
+   dev server run); recommend a quick manual check before merging.
+4. Grepped `product-pricing` for `Category(?!Ref)` — only `categoryId`/`categoryName` (the unbranded
+   `ID` field/local var) remain, no `Category` aggregate type import. Full-aggregate dependency is gone.
 
 ## Known trade-off (flagged, not resolved)
 

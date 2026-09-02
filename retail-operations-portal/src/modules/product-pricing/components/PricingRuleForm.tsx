@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { PricingRule } from "../types";
-import type { Category } from "@/modules/product-catalog";
+import type { CategoryRef } from "@/modules/product-catalog";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -14,7 +14,7 @@ import {
 } from "@/shared/components/ui/select";
 
 interface PricingRuleFormProps {
-  categories: Category[];
+  categories: CategoryRef[];
   initial?: Partial<PricingRule>;
   onSubmit: (rule: Omit<PricingRule, "id">) => void;
   submitLabel?: string;
