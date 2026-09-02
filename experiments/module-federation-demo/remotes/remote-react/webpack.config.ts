@@ -47,6 +47,10 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
       dts: {
         generateTypes: true,
       },
+      shared: {
+        react: { singleton: true, requiredVersion: false },
+        "react-dom": { singleton: true, requiredVersion: false },
+      },
     }),
   ],
 };

@@ -28,29 +28,32 @@ async function mountRemotes() {
   );
 
   const container = document.getElementById("remotes");
-  
+
   // const { mount } = await loadRemote("remoteJs/Widget");
-  // const { CartPanel } = await loadRemote("remoteReact/Widget");
-  const { default: WebComponent } = await loadRemote("remoteReact/WebComponent");
 
-  // if (container) {
-  //   createRoot(container).render(React.createElement(CartPanel));
-  // }
+  const { CartPanel } = await loadRemote("remoteReact/Widget");
 
+  if (container) {
+    createRoot(container).render(
+      React.createElement(CartPanel, {
+        message: "banana",
+      }),
+    );
+  }
 
-  if (!container) return;
-  container.innerHTML = `
-  
-    <div>
-      <p><strong>React bridge:</strong> 
-      <remote-react-widget message="Hey from shell"></remote-react-widget> 
-    </div>
-    <div>
-      <p><strong>Vue bridge:</strong> well-known vs. hand-rolled</p>
-      <remote-vue-widget></remote-vue-widget>
-      <remote-vue-widget-simple></remote-vue-widget-simple>
-    </div>
-  `;
+  // const { default: WebComponent } = await loadRemote("remoteReact/WebComponent");
+  // if (!container) return;
+  // container.innerHTML = `
+  //   <div>
+  //     <p><strong>React bridge:</strong>
+  //     <remote-react-widget message="Hey from shell"></remote-react-widget>
+  //   </div>
+  //   <div>
+  //     <p><strong>Vue bridge:</strong> well-known vs. hand-rolled</p>
+  //     <remote-vue-widget></remote-vue-widget>
+  //     <remote-vue-widget-simple></remote-vue-widget-simple>
+  //   </div>
+  // `;
 }
 
 mountRemotes();
