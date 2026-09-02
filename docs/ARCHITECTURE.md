@@ -19,16 +19,35 @@ Retail Operations Portal — system back-office do obsługi produktów, zamówie
 
 # Ownership map
 
-| Krok procesu           | Domena                     | Zespół        | Pakiet |
-| ---------------------- | -------------------------- | ------------- | ------ |
-| Wybór produktów        | Catalog                    | Catalog Team  | _TBD_  |
-| Reguły i ceny          | Pricing & Promotions       | Pricing Team  | _TBD_  |
-| Walidacja → akceptacja | Pricing & Promotions       | Pricing Team  | _TBD_  |
-| Aktywacja/publikacja   | Pricing & Promotions       | Pricing Team  | _TBD_  |
-| Raportowanie           | Platform / Shared Services | Platform Team | _TBD_  |
+| Krok procesu           | Domena                     | Zespół        | Pakiet                          |
+| ---------------------- | -------------------------- | ------------- | -------------------------------- |
+| Wybór produktów        | Catalog                    | Catalog Team  | `packages/product-catalog`       |
+| Reguły i ceny          | Pricing & Promotions       | Pricing Team  | `packages/product-pricing`       |
+| Walidacja → akceptacja | Pricing & Promotions       | Pricing Team  | `packages/product-pricing`       |
+| Aktywacja/publikacja   | Pricing & Promotions       | Pricing Team  | `packages/product-pricing`       |
+| Raportowanie           | Platform / Shared Services | Platform Team | `packages/platform`              |
 
 > Pełny podział na bounded context (14) i domeny (4) z uzasadnieniem: [docs/context-map/context-map.md](./context-map/context-map.md).
 
+# Struktura modułów i aliasy
+
+- 4 moduły domenowe: `product-catalog`,
+  `product-pricing`, `sales-fulfilment`, `platform`.
+- Fizyczna lokalizacja: `retail-operations-portal/packages/<moduł>`, obok
+  `retail-operations-portal/src/` (app/layout/shared).
+- Publiczne API modułu = jego `index.ts`.
+- Egzekwowanie granic: `boundaries/dependencies` w
+  [eslint.config.js](../retail-operations-portal/eslint.config.js); pliki graniczne chronione w
+  [CODEOWNERS](../.github/CODEOWNERS).
+
+**Aliasy** (spójne w `tsconfig.app.json`, `tsconfig.json`, `vite.config.ts`):
+
+| Alias                 | Cel                          | Użycie                              |
+| --------------------- | ---------------------------- | ------------------------------------ |
+| `@/*`                 | `src/*`                       | reszta appki (app/layout/shared)     |
+| `@/modules/*`         | `packages/*`                  | import cross-module, np. `@/modules/product-catalog` |
+| `@ross-org/<moduł>`   | `packages/<moduł>/index.ts`   | jawny, org-scoped alias na publiczne API modułu  |
+
 # Decyzje Architektoniczne (ADR)
 
-- [Index decyzji architektonicznych](./docs/adr/index.md)
+- [Index decyzji architektonicznych](./adr/index.md)

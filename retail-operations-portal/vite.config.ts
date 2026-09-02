@@ -8,11 +8,12 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
+      '@/modules': path.resolve(import.meta.dirname, './packages'),
       '@': path.resolve(import.meta.dirname, './src'),
-      '@ross-org/product-catalog': path.resolve(import.meta.dirname, './src/modules/product-catalog/index.ts'),
-      '@ross-org/product-pricing': path.resolve(import.meta.dirname, './src/modules/product-pricing/index.ts'),
-      '@ross-org/sales-fulfilment': path.resolve(import.meta.dirname, './src/modules/sales-fulfilment/index.ts'),
-      '@ross-org/platform': path.resolve(import.meta.dirname, './src/modules/platform/index.ts'),
+      '@ross-org/product-catalog': path.resolve(import.meta.dirname, './packages/product-catalog/index.ts'),
+      '@ross-org/product-pricing': path.resolve(import.meta.dirname, './packages/product-pricing/index.ts'),
+      '@ross-org/sales-fulfilment': path.resolve(import.meta.dirname, './packages/sales-fulfilment/index.ts'),
+      '@ross-org/platform': path.resolve(import.meta.dirname, './packages/platform/index.ts'),
     },
   },
 })

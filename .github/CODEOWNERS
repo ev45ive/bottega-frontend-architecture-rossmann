@@ -15,10 +15,10 @@
 /retail-operations-portal/package.json @bottega/architecture
 
 # Public API surface per module — widening these needs the owning team's sign-off.
-/retail-operations-portal/src/modules/product-catalog/index.ts    @bottega/catalog-team
-/retail-operations-portal/src/modules/product-pricing/index.ts   @bottega/pricing-team
-/retail-operations-portal/src/modules/sales-fulfilment/index.ts  @bottega/sales-fulfilment-team
-/retail-operations-portal/src/modules/platform/index.ts         @bottega/platform-team
+/retail-operations-portal/packages/product-catalog/index.ts    @bottega/catalog-team
+/retail-operations-portal/packages/product-pricing/index.ts   @bottega/pricing-team
+/retail-operations-portal/packages/sales-fulfilment/index.ts  @bottega/sales-fulfilment-team
+/retail-operations-portal/packages/platform/index.ts         @bottega/platform-team
 
 # Shared code is importable by every module — new exports here bypass boundaries app-wide.
 /retail-operations-portal/src/shared/ @bottega/platform-team
