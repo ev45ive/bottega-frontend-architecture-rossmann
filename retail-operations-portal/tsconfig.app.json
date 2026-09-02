@@ -10,7 +10,10 @@
     "resolveJsonModule": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@ross-org/product-catalog": ["./src/modules/product-catalog/index.ts"]
+      "@ross-org/product-catalog": ["./src/modules/product-catalog/index.ts"],
+      "@ross-org/product-pricing": ["./src/modules/product-pricing/index.ts"],
+      "@ross-org/sales-fulfilment": ["./src/modules/sales-fulfilment/index.ts"],
+      "@ross-org/platform": ["./src/modules/platform/index.ts"]
     },
 
     /* Bundler mode */

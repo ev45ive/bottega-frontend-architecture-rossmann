@@ -1094,3 +1094,243 @@ _**Agent (copilot/claude-sonnet-5)**_
 
 Created 3 todos
 </details></tool-use>
+
+---
+
+_**User (2026-09-02 08:40:19Z)**_
+
+do same for other modules
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
+
+Read `product-pricing`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\product-pricing`
+
+**Result:**
+
+```
+api/
+components/
+index.ts
+mock-data/
+pages/
+store/
+types.ts
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
+
+Read `sales-fulfilment`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\sales-fulfilment`
+
+**Result:**
+
+```
+api/
+index.ts
+mock-data/
+pages/
+store/
+types.ts
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
+
+Read `platform`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\platform`
+
+**Result:**
+
+```
+api/
+components/
+index.ts
+mock-data/
+pages/
+store/
+types.ts
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+All four modules have `index.ts`. Applying the same three-file pattern for `product-pricing`, `sales-fulfilment`, and `platform`. 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **tsconfig.app.json**</summary>
+
+@@ lines 13-13 @@
+
+```
+,
+      "@ross-org/product-pricing": ["./src/modules/product-pricing/index.ts"],
+      "@ross-org/sales-fulfilment": ["./src/modules/sales-fulfilment/index.ts"],
+      "@ross-org/platform": ["./src/modules/platform/index.ts"]
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+
+```
+
+```
+
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **tsconfig.json**</summary>
+
+@@ lines 11-11 @@
+
+```
+  "@ross-org/product-pricing": ["./src/modules/product-pricing/index.ts"],
+      "@ross-org/sales-fulfilment": ["./src/modules/sales-fulfilment/index.ts"],
+      "@ross-org/platform": ["./src/modules/platform/index.ts"],
+    
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+
+```
+
+```
+
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **vite.config.ts**</summary>
+
+@@ lines 13-13 @@
+
+```
+  '@ross-org/product-pricing': path.resolve(import.meta.dirname, './src/modules/product-pricing/index.ts'),
+      '@ross-org/sales-fulfilment': path.resolve(import.meta.dirname, './src/modules/sales-fulfilment/index.ts'),
+      '@ross-org/platform': path.resolve(import.meta.dirname, './src/modules/platform/index.ts'),
+    
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npm run lint && npx tsc -b --force`
+
+Verify lint and typecheck pass after adding aliases for the remaining 3 modules.
+
+```bash
+npm run lint && npx tsc -b --force
+```
+
+**Result:**
+
+```
+
+> retail-operations-portal@0.0.0 lint
+> eslint .
+
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\badge.tsx
+  52:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\button.tsx
+  58:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\select.tsx
+  191:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\tabs.tsx
+  82:52  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 4 problems (0 errors, 4 warnings)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+0 errors, same 4 pre-existing warnings; `tsc -b --force` produced no output (success). 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npm run build 2>&1 | tail -30`
+
+Run production build to confirm Vite resolves all new org-prefixed aliases.
+
+```bash
+npm run build 2>&1 | tail -30
+```
+
+**Result:**
+
+```
+
+> retail-operations-portal@0.0.0 build
+> tsc -b && vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 2262 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                              0.51 kB │ gzip:   0.33 kB
+dist/assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2    7.42 kB
+dist/assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2      8.00 kB
+dist/assets/geist-cyrillic-wght-normal-BEAKL7Jp.woff2       15.08 kB
+dist/assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2      16.51 kB
+dist/assets/geist-latin-wght-normal-BgDaEnEv.woff2          29.40 kB
+dist/assets/index-bBFzjYIp.css                              70.63 kB │ gzip:  12.16 kB
+dist/assets/index-0sbgrpWq.js                              626.76 kB │ gzip: 198.94 kB
+
+✓ built in 737ms
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Build succeeds. Added `@ross-org/product-pricing`, `@ross-org/sales-fulfilment`, `@ross-org/platform` aliases (each pointing to that module's `index.ts`) to `retail-operations-portal/tsconfig.app.json`, `retail-operations-portal/tsconfig.json`, and `retail-operations-portal/vite.config.ts`, matching the pattern already fixed for `product-catalog`. Lint (0 errors), typecheck, and build all pass. No existing imports were changed — all 4 modules still use `@/modules/...` internally except the one prior `@ross-org/product-catalog` usage.
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 3 todos
+</details></tool-use>
