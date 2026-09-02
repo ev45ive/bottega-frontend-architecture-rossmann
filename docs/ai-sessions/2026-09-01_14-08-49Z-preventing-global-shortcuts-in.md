@@ -903,3 +903,2059 @@ _**Agent (copilot/claude-sonnet-5)**_
 
 Created 5 todos
 </details></tool-use>
+
+---
+
+_**User (2026-09-02 06:12:20Z)**_
+
+rewrite into eslint/oxlint rule 
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cd retail-operations-portal && npx oxlint --rules 2>&1 | grep -i "restricted...`
+
+Check if oxlint has a no-restricted-syntax rule or similar that can match declare global
+
+```bash
+cd retail-operations-portal && npx oxlint --rules 2>&1 | grep -i "restricted-syntax\|no-restricted\|declare\|global" 
+```
+
+**Result:**
+
+```
+bash: cd: retail-operations-portal: No such file or directory
+
+Command exited with code 1
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` pwd && npx oxlint --rules 2>&1 | grep -i "restricted-syntax\\|no-restricted\\|...`
+
+Check if oxlint has a no-restricted-syntax rule or similar that can match declare global
+
+```bash
+pwd && npx oxlint --rules 2>&1 | grep -i "restricted-syntax\|no-restricted\|declare\|global"
+```
+
+**Result:**
+
+```
+/c/Projects/bottega-frontend-architecture-rossmann/retail-operations-portal
+
+Command exited with code 1
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npx oxlint --rules 2>&1 | head -100`
+
+List all oxlint rules to check available options
+
+```bash
+npx oxlint --rules 2>&1 | head -100
+```
+
+**Result:**
+
+```
+
+
+Command produced no output
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npx oxlint --help 2>&1 | head -60`
+
+Check oxlint CLI help for rule listing options
+
+```bash
+npx oxlint --help 2>&1 | head -60
+```
+
+**Result:**
+
+```
+Usage: [-c=<./.oxlintrc.json>] [PATH]...
+
+Basic Configuration
+    -c, --config=<./.oxlintrc.json>  Oxlint configuration file
+                              * `.json` and `.jsonc` config files are supported in all runtimes
+                              * JavaScript/TypeScript config files are experimental and require
+                              running via Node.js
+                              * you can use comments in configuration files.
+                              * tries to be compatible with ESLint v8's format
+        --tsconfig=<./tsconfig.json>  Override the TypeScript config used for import resolution.
+                              Oxlint automatically discovers the relevant `tsconfig.json` for each
+                              file. Use this only when your project uses a non-standard tsconfig
+                              name or location.
+        --init                Initialize oxlint configuration with default values
+
+Allowing / Denying Multiple Lints
+   Accumulate rules and categories from left to right on the command-line.
+   For example `-D correctness -A no-debugger` or `-A all -D no-debugger`.
+   The categories are:
+   * `correctness` - Code that is outright wrong or useless (default)
+   * `suspicious`  - Code that is most likely wrong or useless
+   * `pedantic`    - Lints which are rather strict or have occasional false positives
+   * `perf`        - Code that could be written in a more performant way
+   * `style`       - Code that should be written in a more idiomatic way
+   * `restriction` - Lints which prevent the use of language and library features
+   * `nursery`     - New lints that are still under development
+   * `all`         - All categories listed above except `nursery`. Does not enable plugins
+  automatically.
+    -A, --allow=NAME          Allow the rule or category (suppress the lint)
+    -W, --warn=NAME           Warn on the rule or category (emit a warning)
+    -D, --deny=NAME           Deny the rule or category (emit an error)
+
+E
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` grep -io '"no-restricted\[a-z-\]\*"' node\_modules/oxlint/configuration\_schema.j...`
+
+Search oxlint's configuration schema for any restricted-syntax style rule
+
+```bash
+grep -io '"no-restricted[a-z-]*"' node_modules/oxlint/configuration_schema.json | sort -u; echo "---"; grep -io '"[a-z-]*restrict[a-z-]*"' node_modules/oxlint/configuration_schema.json | sort -u
+```
+
+**Result:**
+
+```
+"no-restricted-exports"
+"no-restricted-globals"
+"no-restricted-imports"
+"no-restricted-properties"
+---
+"no-restricted-exports"
+"NoRestrictedExportsConfig"
+"no-restricted-globals"
+"NoRestrictedGlobalsConfigEnum"
+"NoRestrictedGlobalsConfigValue"
+"NoRestrictedGlobalsObjectConfig"
+"no-restricted-imports"
+"NoRestrictedImportsConfig"
+"NoRestrictedImportsConfigEnum"
+"NoRestrictedImportsConfigValue"
+"NoRestrictedMatchersConfig"
+"no-restricted-properties"
+"NoRestrictedTestMethodsConfig"
+"NoRestrictedTypesConfig"
+"no-shadow-restricted-names"
+"NoShadowRestrictedNamesConfig"
+"restrictDefaultExports"
+"RestrictDefaultExports"
+"restrictedAttributes"
+"RestrictedGlobal"
+"restrictedNamedExports"
+"restrictedNamedExportsPattern"
+"RestrictedPath"
+"RestrictedPattern"
+"restriction"
+"RestrictPlusOperandsConfig"
+"RestrictTemplateExpressionsConfig"
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Checked — oxlint has no generic custom-rule mechanism and no `no-restricted-syntax` equivalent (verified against `node_modules/oxlint/configuration_schema.json`: only `no-restricted-{imports,exports,globals,properties}` exist, none of which can match a `declare global {}` AST node). So there's no way to express this as an oxlint rule.
+
+The only way to get a real *lint rule* (not a script) for this is ESLint's `no-restricted-syntax` with a `TSModuleDeclaration[global=true]` selector — but that means adding ESLint + `@typescript-eslint/parser` as a second linter, which contradicts this project's existing decision to run oxlint-only (no ESLint config anywhere in the repo).
+
+Two options — which do you want?
+1. **Keep the script** (current state) — no new dependency, runs as part of `npm run lint`.
+2. **Add ESLint just for this one rule** — real lint-rule semantics, but introduces a second linter/config plus `eslint`, `@typescript-eslint/parser` (and probably `@typescript-eslint/eslint-plugin` for TS AST types) as new dependencies, running alongside oxlint.
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 4 todos
+</details></tool-use>
+
+---
+
+_**User (2026-09-02 06:13:51Z)**_
+
+can we make it oxlint compatibile?
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` ls node\_modules/oxlint/ && cat node\_modules/oxlint/package.json | head -30`
+
+Inspect installed oxlint package for plugin support hints
+
+```bash
+ls node_modules/oxlint/ && cat node_modules/oxlint/package.json | head -30
+```
+
+**Result:**
+
+```
+bin/  configuration_schema.json  dist/  LICENSE  package.json  README.md
+{
+  "name": "oxlint",
+  "version": "1.80.0",
+  "description": "Linter for the JavaScript Oxidation Compiler",
+  "keywords": [
+    "eslint",
+    "javascript",
+    "linter",
+    "oxc",
+    "oxlint",
+    "typescript"
+  ],
+  "homepage": "https://oxc.rs/docs/guide/usage/linter",
+  "bugs": "https://github.com/oxc-project/oxc/issues",
+  "license": "MIT",
+  "author": "Boshen and oxc contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oxc-project/oxc",
+    "directory": "npm/oxlint"
+  },
+  "funding": {
+    "url": "https://github.com/sponsors/Boshen"
+  },
+  "bin": {
+    "oxlint": "bin/oxlint"
+  },
+  "files": [
+    "configuration_schema.json",
+    "dist",
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npx oxlint --help 2>&1 | grep -i "plugin\\|jsonc\\|experimental" `
+
+Search oxlint help output for any experimental JS plugin flags
+
+```bash
+npx oxlint --help 2>&1 | grep -i "plugin\|jsonc\|experimental" 
+```
+
+**Result:**
+
+```
+                              * `.json` and `.jsonc` config files are supported in all runtimes
+                              * JavaScript/TypeScript config files are experimental and require
+   * `all`         - All categories listed above except `nursery`. Does not enable plugins
+Enable/Disable Plugins
+        --disable-unicorn-plugin  Disable unicorn plugin, which is turned on by default
+        --disable-oxc-plugin  Disable oxc unique rules, which is turned on by default
+        --disable-typescript-plugin  Disable TypeScript plugin, which is turned on by default
+        --import-plugin       Enable import plugin and detect ESM problems.
+        --react-plugin        Enable react plugin, which is turned off by default
+        --jsdoc-plugin        Enable jsdoc plugin and detect JSDoc problems
+        --jest-plugin         Enable the Jest plugin and detect test problems
+        --vitest-plugin       Enable the Vitest plugin and detect test problems
+        --jsx-a11y-plugin     Enable the JSX-a11y plugin and detect accessibility problems
+        --nextjs-plugin       Enable the Next.js plugin and detect Next.js problems
+        --react-perf-plugin   Enable the React performance plugin and detect rendering performance
+        --promise-plugin      Enable the promise plugin and detect promise usage problems
+        --node-plugin         Enable the node plugin and detect node usage problems
+        --vue-plugin          Enable the vue plugin and detect vue usage problems
+        --type-check          Enable experimental type checking (includes TypeScript compiler
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Checked oxlint 1.80.0's CLI (`--help`) and plugin list — it only supports enabling/disabling its fixed built-in plugins (react, import, jsdoc, jest, vitest, jsx-a11y, nextjs, react-perf, promise, node, vue, typescript, oxc, unicorn). There is no custom/user-defined rule API and no `no-restricted-syntax`-style generic AST-selector rule, so a `declare global` ban cannot be expressed as a native oxlint rule at all — this isn't a config gap, it's a missing feature in oxlint itself.
+
+The script is the only way to enforce this while staying oxlint-only. It's already "oxlint compatible" in the sense that matters here — it runs as part of the same `npm run lint` command (`oxlint && node scripts/check-no-global-declarations.mjs`) and gates the build the same way. Making it a literal oxlint rule would require the ESLint route I described earlier, which you didn't pick. 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="memory"><details>
+<summary>Tool use: **memory**</summary>
+
+Updated memory file `structure.md`
+
+**Input:**
+
+- command: `str_replace`
+- new_str:
+
+```
+- Only linter in `retail-operations-portal` is **oxlint** (no ESLint). It supports nested
+  `.oxlintrc.json` per directory (nearest wins, NOT auto-merged — child must `extends` parent and
+  restate same-key rules) and the `no-restricted-imports` rule (patterns=regex, paths=exact) which
+  is sufficient to enforce module import boundaries without `eslint-plugin-boundaries` (oxlint
+  doesn't support it).
+- oxlint (checked v1.80.0) has NO custom/user-defined rule API and no `no-restricted-syntax`
+  equivalent — only its fixed built-in plugins (react/import/jsdoc/jest/vitest/jsx-a11y/nextjs/
+  react-perf/promise/node/vue/typescript/oxc/unicorn) can be toggled via CLI flags. Anything not
+  covered by a built-in rule (e.g. banning `declare global` ambient blocks, which bypass
+  `no-restricted-imports` since there's no import statement to match) needs a plain script wired
+  into `npm run lint` (see `scripts/check-no-global-declarations.mjs`), or adding ESLint as a
+  second linter just for that rule (`no-restricted-syntax` + `TSModuleDeclaration[global=true]`)
+  — the latter was declined as of 2026-09-02 to keep oxlint-only.
+- Module boundary guard files are protected via root `.github/CODEOWNERS` (repo root, not inside
+  `retail-operations-portal/`): root + per-module `.oxlintrc.json`, the guard script, `package.json`
+  (lint wiring), each module's `index.ts`, and `src/shared/`. Team handles in it are placeholders
+  (`@bottega/*`) — not real GitHub teams yet, so it currently has no actual enforcement effect.
+```
+
+- old_str:
+
+```
+- Only linter in `retail-operations-portal` is **oxlint** (no ESLint). It supports nested
+  `.oxlintrc.json` per directory (nearest wins, NOT auto-merged — child must `extends` parent and
+  restate same-key rules) and the `no-restricted-imports` rule (patterns=regex, paths=exact) which
+  is sufficient to enforce module import boundaries without `eslint-plugin-boundaries` (oxlint
+  doesn't support it).
+```
+
+- path: `/memories/repo/structure.md`
+
+**Result:**
+
+```
+The memory file has been edited. Here's the result of running `cat -n` on a snippet of /memories/repo/structure.md:
+     8	  leaves later relative paths resolving from the wrong place.
+     9	- Docs are canonical source of truth: read `docs/ARCHITECTURE.md` before any architecture work.
+    10	  `docs/adr/`, `docs/context-map/context-map.md` also authoritative. Ignore `./exercises`,
+    11	  `./docs/architecture-reports` (not part of the project).
+    12	- Only linter in `retail-operations-portal` is **oxlint** (no ESLint). It supports nested
+    13	  `.oxlintrc.json` per directory (nearest wins, NOT auto-merged — child must `extends` parent and
+    14	  restate same-key rules) and the `no-restricted-imports` rule (patterns=regex, paths=exact) which
+    15	  is sufficient to enforce module import boundaries without `eslint-plugin-boundaries` (oxlint
+    16	  doesn't support it).
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Recorded the finding in repo memory for future reference.
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 4 todos
+</details></tool-use>
+
+---
+
+_**User (2026-09-02 06:15:24Z)**_
+
+replace oxlint with eslint,  add dependecy-boundary plugin and configure, create custom pligin for check no globals
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
+
+Read `modules`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules`
+
+**Result:**
+
+```
+platform/
+product-catalog/
+product-pricing/
+sales-fulfilment/
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="list_dir"><details>
+<summary>Tool use: **list_dir**</summary>
+
+Read `shared`
+
+**Input:**
+
+- path: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared`
+
+**Result:**
+
+```
+components/
+lib/
+store/
+types.ts
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `.oxlintrc.json`
+
+**Input:**
+
+- endLine: `50`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\sales-fulfilment\.oxlintrc.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "$schema": "../../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../../.oxlintrc.json"],
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": ["@/modules/product-pricing", "@/modules/platform"],
+        "patterns": [
+          {
+            "regex": "^@/modules/[^/]+/.+",
+            "message": "Deep imports into another module's internals are forbidden. Import only the module's public API (e.g. @/modules/sales-fulfilment)."
+          },
+          {
+            "regex": "^(\\.\\./)+modules/",
+            "message": "Relative imports may not cross into modules/. Use the @/modules/<name> alias to reach a module's public API."
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `.oxlintrc.json`
+
+**Input:**
+
+- endLine: `50`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\product-pricing\.oxlintrc.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "$schema": "../../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../../.oxlintrc.json"],
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": ["@/modules/sales-fulfilment"],
+        "patterns": [
+          {
+            "regex": "^@/modules/[^/]+/.+",
+            "message": "Deep imports into another module's internals are forbidden. Import only the module's public API (e.g. @/modules/product-pricing)."
+          },
+          {
+            "regex": "^(\\.\\./)+modules/",
+            "message": "Relative imports may not cross into modules/. Use the @/modules/<name> alias to reach a module's public API."
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `.oxlintrc.json`
+
+**Input:**
+
+- endLine: `50`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\platform\.oxlintrc.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "$schema": "../../../node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../../.oxlintrc.json"],
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": ["@/modules/product-catalog", "@/modules/product-pricing", "@/modules/sales-fulfilment"],
+        "patterns": [
+          {
+            "regex": "^@/modules/[^/]+/.+",
+            "message": "Deep imports into another module's internals are forbidden. Import only the module's public API (e.g. @/modules/platform)."
+          },
+          {
+            "regex": "^(\\.\\./)+modules/",
+            "message": "Relative imports may not cross into modules/. Use the @/modules/<name> alias to reach a module's public API."
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npm view eslint version && npm view typescript-eslint version && npm view es...`
+
+Check latest published versions of ESLint and required plugins
+
+```bash
+npm view eslint version && npm view typescript-eslint version && npm view eslint-plugin-boundaries version && npm view eslint-plugin-react-hooks version && npm view eslint-plugin-react-refresh version && npm view @eslint/js version
+```
+
+**Result:**
+
+```
+10.9.1
+8.69.0
+7.2.0
+7.1.1
+0.5.5
+10.0.1
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="fetch_webpage"><details>
+<summary>Tool use: **fetch_webpage**</summary>
+
+Fetched 2 resources
+
+**Input:**
+
+- query: `eslint-plugin-boundaries element-types entry-point rule configuration flat config example`
+- urls:
+
+```
+[
+  "https://github.com/javierbrea/eslint-plugin-boundaries",
+  "https://raw.githubusercontent.com/javierbrea/eslint-plugin-boundaries/master/README.md"
+]
+```
+
+
+**Result:**
+
+```
+Here is some relevant context from the web page https://github.com/javierbrea/eslint-plugin-boundaries:
+...
+## Navigation Menu
+
+  [Homepage](https://github.com/)[Sign in](https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fjavierbrea%2Feslint-plugin-boundaries)   [javierbrea](https://github.com/javierbrea)/eslint-plugin-boundariesPublic 
+[Sponsor @javierbrea](https://github.com/sponsors/javierbrea)
+[You must be signed in to change notification settings](https://github.com/login?return_to=%2Fjavierbrea%2Feslint-plugin-boundaries)
+[Fork 20](https://github.com/login?return_to=%2Fjavierbrea%2Feslint-plugin-boundaries)
+[You must be signed in to star a repository](https://github.com/login?return_to=%2Fjavierbrea%2Feslint-plugin-boundaries)
+       ...
+...
+## Navigation Menu
+...
+       master[Go to Branches page](https://github.com/javierbrea/eslint-plugin-boundaries/branches)[Go to Tags page](https://github.com/javierbrea/eslint-plugin-boundaries/tags)Go to fileCode
+       ...
+...
+## Latest commit
+
+[javierbrea](https://github.com/javierbrea)[commits by javierbrea](https://github.com/javierbrea/eslint-plugin-boundaries/commits?author=javierbrea)[Release v7.2.0 (](https://github.com/javierbrea/eslint-plugin-boundaries/commit/50f2d3193ec571569a478c811ec83171a16d11a3)[#485](https://github.com/javierbrea/eslint-plugin-boundaries/pull/485)[)](https://github.com/javierbrea/eslint-plugin-boundaries/commit/50f2d3193ec571569a478c811ec83171a16d11a3)[Commit 50f2d31](https://github.com/javierbrea/eslint-plugin-boundaries/commit/50f2d3193ec571569a478c811ec83171a16d11a3) ·  3 weeks ago
+...
+...
+## History
+
+[View commit history for this file.](https://github.com/javierbrea/eslint-plugin-boundaries/commits/master/)
+...
+...
+## Folders and files
+
+
+|  |
+|  |
+| .agents, (Directory) | chore: Add review-pr skill (#483) | 3 weeks ago |
+| .claude, (Directory) | docs: Improve agents docs (#480) | last month |
+| .github, (Directory) | chore(deps): pin dependencies (#474) | 2 months ago |
+| 
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="fetch_webpage"><details>
+<summary>Tool use: **fetch_webpage**</summary>
+
+Fetched 4 resources
+
+**Input:**
+
+- query: `boundaries/dependencies rule policies to element public entry point private files disallow deep import index.ts`
+- urls:
+
+```
+[
+  "https://www.jsboundaries.dev/docs/rules/",
+  "https://www.jsboundaries.dev/docs/policies/",
+  "https://www.jsboundaries.dev/docs/classification/",
+  "https://www.jsboundaries.dev/docs/guides/typescript-support/"
+]
+```
+
+
+**Result:**
+
+```
+Here is some relevant context from the web page https://www.jsboundaries.dev/docs/policies/:
+...
+# Policies
+...
+## Rule FormatDirect link to Rule Format
+
+
+[boundaries/dependencies](https://www.jsboundaries.dev/docs/rules/dependencies/) is the canonical rule for restricting dependencies between elements. This page
+documents how to configure it: you set a default effect (`allow` or `disallow`), then provide an array of policies that override that default.
+
+ [Image: Image]
+
+DEPRECATED RULES USE THE SAME MECHANISM
+The deprecated rules [boundaries/element-types](https://www.jsboundaries.dev/docs/rules/dependencies/), [boundaries/external](https://www.jsboundaries.dev/docs/rules/external/), and [boundaries/entry-point](https://www.jsboundaries.dev/docs/rules/entry-point/) build on this same base configuration, with their own differences. Their pages
+document those differences and how to migrate to `boundaries/dependencies`.
+
+ [Image: Image]
+
+POLICY PRECEDENCE
+Each matching policy overrides previous values, so the final result is determined by the last matching policy.
+
+
+Basic structure:
+...
+...
+# Policies
+...
+## Rule FormatDirect link to Rule Format
+...
+  ` `export` `default` `[`{` `  `rules`:` `{` `    `"boundaries/dependencies"`:` `[`2`,` `{` `      `
+// Default effect when no policy matches` `      `default`:` `"allow"`,` ` ` `      `
+// Optional custom message (overridable per policy)` `      `message`:` `
+"{{from.element.types}} is not allowed to depend on {{to.element.types}}"`,` ` ` `      `// Array of policies` `      `policies`:` `[` `        `{` `          `from`:` `{` `
+element`:` `{` `type`:` `"helper"` `}` `}`,` `          `
+// Effect when the dependency matches this policy` `          `disallow`:` `{` `            `to`:` `{` `element`:` `{` `type`:` `[`"module"`,` `"component"`
+]` `}` `}` `          `}`,` `          `
+...
+...
+# Policies
+...
+## Rule FormatDirect link to Rule Format
+...
+// Optional custom message for this policy (overrides the top-level messag
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="fetch_webpage"><details>
+<summary>Tool use: **fetch_webpage**</summary>
+
+Fetched 3 resources
+
+**Input:**
+
+- query: `entry-point rule migration fileInternalPath example dependencies rule reproduce entry point behavior index.ts`
+- urls:
+
+```
+[
+  "https://www.jsboundaries.dev/docs/rules/entry-point/",
+  "https://www.jsboundaries.dev/docs/rules/dependencies/",
+  "https://www.jsboundaries.dev/docs/classification/elements/"
+]
+```
+
+
+**Result:**
+
+```
+Here is some relevant context from the web page https://www.jsboundaries.dev/docs/rules/dependencies/:
+...
+# dependencies
+...
+## Rule DetailsDirect link to Rule Details
+
+
+This rule evaluates dependencies. By default it checks only local-origin
+dependencies to known, non-internal targets. A dependency is skipped when its target is
+external or core, when its target is unknown, or when it is internal to the
+same element. Use `checkAllOrigins`, `checkUnknownLocals`, and `checkInternals` to broaden coverage.
+
+
+When a dependency is evaluated, the rule decides whether it is allowed or
+disallowed by matching it against your `rules`, which contains the policies. Policies are processed in order, and the last
+policy that matches wins. Inside a single policy, `disallow` is evaluated before `allow`.
+
+
+...
+...
+# dependencies
+...
+## OptionsDirect link to Options
+...
+### Using selectors in this ruleDirect link to Using selectors in this rule
+
+
+This rule uses [selectors](https://www.jsboundaries.dev/docs/selectors/) to decide which dependencies a policy applies to. The `from` and `to` selectors locate the two sides of a dependency; the `dependency` selector matches its metadata (kind, relationship, and more).
+
+
+For example, you can match components of one `family` and allow them to import only components of the same `family`, using a captured value in the selector.
+
+ [Image: Image]
+
+TIP
+Enable [debug mode](https://www.jsboundaries.dev/docs/guides/debugging/) to inspect the descriptions assigned to each file and dependency. This helps
+you see how selectors match and how to configure your policies.
+
+
+...
+...
+# dependencies
+...
+## OptionsDirect link to Options
+...
+### Configuration ExampleDirect link to Configuration Example
+
+
+This example uses the entity selector form (`{ element: { ... } }`). It locates each side of a dependency through the [entity selector](https://www.jsboundaries.dev/docs/selectors/), which gives you access to `element`, `file`, and `module` matching.
+
+  ` `{` `  
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npm uninstall oxlint && npm install -D eslint@^10.9.1 typescript-eslint@^8.6...`
+
+Remove oxlint and install ESLint plus required plugins for module boundary enforcement and React linting
+
+```bash
+npm uninstall oxlint && npm install -D eslint@^10.9.1 typescript-eslint@^8.69.0 @eslint/js@^10.0.1 eslint-plugin-boundaries@^7.2.0 eslint-plugin-react-hooks@^7.1.1 eslint-plugin-react-refresh@^0.5.5 eslint-import-resolver-typescript
+```
+
+**Result:**
+
+```
+
+removed 2 packages, and audited 373 packages in 892ms
+
+125 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+added 109 packages, and audited 482 packages in 8s
+
+163 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Now let's verify the AST shape of `declare global` with the installed TS parser before writing the custom rule. 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` node -e "
+const \{ parse \} = require\('@typescript-eslint/typescript-estree'\);...`
+
+Inspect the AST node shape produced for a declare global block to write an accurate custom ESLint rule
+
+```bash
+node -e "
+const { parse } = require('@typescript-eslint/typescript-estree');
+const code = 'declare global { interface Window { foo: string } }\nexport {};';
+const ast = parse(code, { range: false, loc: false });
+console.log(JSON.stringify(ast.body[0], null, 2).slice(0, 500));
+"
+```
+
+**Result:**
+
+```
+{
+  "type": "TSModuleDeclaration",
+  "body": {
+    "type": "TSModuleBlock",
+    "body": [
+      {
+        "type": "TSInterfaceDeclaration",
+        "body": {
+          "type": "TSInterfaceBody",
+          "body": [
+            {
+              "type": "TSPropertySignature",
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "decorators": [],
+                "name": "foo",
+                "optional": false
+              },
+              "o
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` node -e "
+const \{ parse \} = require\('@typescript-eslint/typescript-estree'\);...`
+
+Print top-level TSModuleDeclaration properties to find the discriminator for a global augmentation block
+
+```bash
+node -e "
+const { parse } = require('@typescript-eslint/typescript-estree');
+const code = 'declare global { interface Window { foo: string } }\nexport {};';
+const ast = parse(code, { range: false, loc: false });
+const node = ast.body[0];
+console.log(Object.keys(node));
+console.log('kind:', node.kind, 'global:', node.global, 'declare:', node.declare, 'id:', JSON.stringify(node.id));
+"
+```
+
+**Result:**
+
+```
+[ 'type', 'body', 'declare', 'global', 'id', 'kind' ]
+kind: global global: true declare: true id: {"type":"Identifier","decorators":[],"name":"global","optional":false}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` node -e "
+const rh = require\('eslint-plugin-react-hooks'\);
+console.log\('reac...`
+
+Inspect available flat-config presets for react-hooks and react-refresh plugins
+
+```bash
+node -e "
+const rh = require('eslint-plugin-react-hooks');
+console.log('react-hooks configs:', Object.keys(rh.configs || {}));
+const rr = require('eslint-plugin-react-refresh');
+console.log('react-refresh configs:', Object.keys(rr.configs || {}));
+console.log('react-refresh rules:', Object.keys(rr.rules || {}));
+"
+```
+
+**Result:**
+
+```
+react-hooks configs: [ 'recommended', 'recommended-latest', 'flat' ]
+react-refresh configs: []
+react-refresh rules: []
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` cat node\_modules/eslint-plugin-react-refresh/package.json | head -30 && echo...`
+
+Check react-refresh plugin package type and inspect its ESM exports for rule names
+
+```bash
+cat node_modules/eslint-plugin-react-refresh/package.json | head -30 && echo --- && node -e "
+import('eslint-plugin-react-refresh').then(m => {
+  console.log(Object.keys(m.default || m));
+  console.log('rules:', Object.keys((m.default||m).rules || {}));
+});
+"
+```
+
+**Result:**
+
+```
+{
+  "name": "eslint-plugin-react-refresh",
+  "description": "Validate that your components can safely be updated with Fast Refresh",
+  "version": "0.5.5",
+  "type": "module",
+  "author": "Arnaud Barré (https://github.com/ArnaudBarre)",
+  "license": "MIT",
+  "repository": "github:ArnaudBarre/eslint-plugin-react-refresh",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "react",
+    "react-refresh",
+    "fast refresh"
+  ],
+  "peerDependencies": {
+    "eslint": "^9 || ^10"
+  }
+}---
+[ 'rules', 'configs' ]
+rules: [ 'only-export-components' ]
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Good — confirmed rule name `only-export-components`. Now writing `eslint.config.js` and the custom rule file. 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="create_file"><details>
+<summary>Tool use: **create_file**</summary>
+
+Created `no-declare-global.js`
+
+**Input:**
+
+- content:
+
+```
+// Custom rule: `declare global` bypasses boundaries/dependencies since it introduces no
+// import statement for the dependency graph to see (see docs/adr/0000-podzial-na-moduly-domenowe.md).
+
+/** @type {import("eslint").Rule.RuleModule} */
+const noDeclareGlobal = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow `declare global` blocks, which make symbols globally visible without an import.",
+    },
+    schema: [],
+    messages: {
+      forbidden:
+        "`declare global` is forbidden: it bypasses the boundaries/dependencies module boundary rule since no import statement exists for it to see.",
+    },
+  },
+  create(context) {
+    return {
+      TSModuleDeclaration(node) {
+        if (node.kind === "global") {
+          context.report({ node, messageId: "forbidden" });
+        }
+      },
+    };
+  },
+};
+
+export default { rules: { "no-declare-global": noDeclareGlobal } };
+
+```
+
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\eslint-rules\no-declare-global.js`
+
+**Result:**
+
+```
+The following files were successfully edited:
+c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\eslint-rules\no-declare-global.js
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **no-declare-global.js**</summary>
+
+@@ lines 1-1 @@
+
+```
+// Custom rule: `declare global` bypasses boundaries/dependencies since it introduces no
+// import statement for the dependency graph to see (see docs/adr/0000-podzial-na-moduly-domenowe.md).
+
+/** @type {import("eslint").Rule.RuleModule} */
+const noDeclareGlobal = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow `declare global` blocks, which make symbols globally visible without an import.",
+    },
+    schema: [],
+    messages: {
+      forbidden:
+        "`declare global` is forbidden: it bypasses the boundaries/dependencies module boundary rule since no import statement exists for it to see.",
+    },
+  },
+  create(context) {
+    return {
+      TSModuleDeclaration(node) {
+        if (node.kind === "global") {
+          context.report({ node, messageId: "forbidden" });
+        }
+      },
+    };
+  },
+};
+
+export default { rules: { "no-declare-global": noDeclareGlobal } };
+
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="create_file"><details>
+<summary>Tool use: **create_file**</summary>
+
+Created `eslint.config.js`
+
+**Input:**
+
+- content:
+
+```
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import boundaries from "eslint-plugin-boundaries";
+import localRules from "./eslint-rules/no-declare-global.js";
+
+// Module boundaries (docs/adr/0000-podzial-na-moduly-domenowe.md): domain modules talk to each
+// other only through their public API (index.ts); allowed cross-module directions mirror the
+// ownership map in docs/ARCHITECTURE.md.
+const domainModules = ["product-catalog", "product-pricing", "sales-fulfilment", "platform"];
+
+export default tseslint.config(
+  { ignores: ["dist", "node_modules"] },
+  js.configs.recommended,
+  tseslint.configs.recommended,
+  {
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: "module",
+    },
+    plugins: {
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+      boundaries,
+      local: localRules,
+    },
+    settings: {
+      "import/resolver": {
+        typescript: { alwaysTryTypes: true },
+      },
+      "boundaries/elements": [
+        { type: "product-catalog", pattern: "src/modules/product-catalog", partialMatch: false },
+        { type: "product-pricing", pattern: "src/modules/product-pricing", partialMatch: false },
+        { type: "sales-fulfilment", pattern: "src/modules/sales-fulfilment", partialMatch: false },
+        { type: "platform", pattern: "src/modules/platform", partialMatch: false },
+        { type: "shared", pattern: "src/shared", partialMatch: false },
+        { type: "app", pattern: "src/app", partialMatch: false },
+        { type: "layout", pattern: "src/layout", partialMatch: false },
+      ],
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "local/no-declare-global": "error",
+      "boundaries/dependencies": [
+        "error",
+        {
+          default: "allow",
+          message:
+            "{{from.element.types}} must not depend on {{to.element.types}}. See docs/adr/0000-podzial-na-moduly-domenowe.md.",
+          policies: [
+            {
+              // Deep imports into another module's internals are forbidden — only its
+              // public API (index.ts) is reachable. Imports within the same module are
+              // exempt automatically (checkInternals defaults to false).
+              to: { element: { type: domainModules, fileInternalPath: "!index.ts" } },
+              disallow: { from: { element: { type: "*" } } },
+              message:
+                "Deep imports into another module's internals are forbidden. Import only the module's public API (e.g. @/modules/product-catalog).",
+            },
+            {
+              from: { element: { type: "product-pricing" } },
+              disallow: { to: { element: { type: "sales-fulfilment" } } },
+            },
+            {
+              from: { element: { type: "sales-fulfilment" } },
+              disallow: { to: { element: { type: ["product-pricing", "platform"] } } },
+            },
+            {
+              from: { element: { type: "platform" } },
+              disallow: {
+                to: { element: { type: ["product-catalog", "product-pricing", "sales-fulfilment"] } },
+              },
+            },
+          ],
+        },
+      ],
+    },
+  },
+);
+
+```
+
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\eslint.config.js`
+
+**Result:**
+
+```
+The following files were successfully edited:
+c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\eslint.config.js
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **eslint.config.js**</summary>
+
+@@ lines 1-1 @@
+
+```
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import boundaries from "eslint-plugin-boundaries";
+import localRules from "./eslint-rules/no-declare-global.js";
+
+// Module boundaries (docs/adr/0000-podzial-na-moduly-domenowe.md): domain modules talk to each
+// other only through their public API (index.ts); allowed cross-module directions mirror the
+// ownership map in docs/ARCHITECTURE.md.
+const domainModules = ["product-catalog", "product-pricing", "sales-fulfilment", "platform"];
+
+export default tseslint.config(
+  { ignores: ["dist", "node_modules"] },
+  js.configs.recommended,
+  tseslint.configs.recommended,
+  {
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: "module",
+    },
+    plugins: {
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+      boundaries,
+      local: localRules,
+    },
+    settings: {
+      "import/resolver": {
+        typescript: { alwaysTryTypes: true },
+      },
+      "boundaries/elements": [
+        { type: "product-catalog", pattern: "src/modules/product-catalog", partialMatch: false },
+        { type: "product-pricing", pattern: "src/modules/product-pricing", partialMatch: false },
+        { type: "sales-fulfilment", pattern: "src/modules/sales-fulfilment", partialMatch: false },
+        { type: "platform", pattern: "src/modules/platform", partialMatch: false },
+        { type: "shared", pattern: "src/shared", partialMatch: false },
+        { type: "app", pattern: "src/app", partialMatch: false },
+        { type: "layout", pattern: "src/layout", partialMatch: false },
+      ],
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "local/no-declare-global": "error",
+      "boundaries/dependencies": [
+        "error",
+        {
+          default: "allow",
+          message:
+            "{{from.element.types}} must not depend on {{to.element.types}}. See docs/adr/0000-podzial-na-moduly-domenowe.md.",
+          policies: [
+            {
+              // Deep imports into another module's internals are forbidden — only its
+              // public API (index.ts) is reachable. Imports within the same module are
+              // exempt automatically (checkInternals defaults to false).
+              to: { element: { type: domainModules, fileInternalPath: "!index.ts" } },
+              disallow: { from: { element: { type: "*" } } },
+              message:
+                "Deep imports into another module's internals are forbidden. Import only the module's public API (e.g. @/modules/product-catalog).",
+            },
+            {
+              from: { element: { type: "product-pricing" } },
+              disallow: { to: { element: { type: "sales-fulfilment" } } },
+            },
+            {
+              from: { element: { type: "sales-fulfilment" } },
+              disallow: { to: { element: { type: ["product-pricing", "platform"] } } },
+            },
+            {
+              from: { element: { type: "platform" } },
+              disallow: {
+                to: { element: { type: ["product-catalog", "product-pricing", "sales-fulfilment"] } },
+              },
+            },
+          ],
+        },
+      ],
+    },
+  },
+);
+
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Now update `package.json` scripts and remove the old oxlint configs / superseded script: 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="multi_replace_string_in_file"><details>
+<summary>Tool use: **multi_replace_string_in_file**</summary>
+
+Replacing 3 lines with 3 lines in `package.json`
+
+**Input:**
+
+- explanation: `Wire ESLint into the lint script and remove the now-superseded custom guard script`
+- replacements:
+
+```
+[
+  {
+    "filePath": "c:\\Projects\\bottega-frontend-architecture-rossmann\\retail-operations-portal\\package.json",
+    "newString": "    \"build\": \"tsc -b \u0026\u0026 vite build\",\n    \"lint\": \"eslint .\",\n    \"preview\": \"vite preview\"",
+    "oldString": "    \"build\": \"tsc -b \u0026\u0026 vite build\",\n    \"lint\": \"oxlint \u0026\u0026 node scripts/check-no-global-declarations.mjs\",\n    \"preview\": \"vite preview\""
+  }
+]
+```
+
+
+**Result:**
+
+```
+The following files were successfully edited:
+c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\package.json
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **package.json**</summary>
+
+@@ lines 9-9 @@
+
+```
+eslint .
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` rm -f .oxlintrc.json src/modules/product-catalog/.oxlintrc.json src/modules/...`
+
+Remove obsolete oxlint config files and the superseded guard script
+
+```bash
+rm -f .oxlintrc.json src/modules/product-catalog/.oxlintrc.json src/modules/product-pricing/.oxlintrc.json src/modules/sales-fulfilment/.oxlintrc.json src/modules/platform/.oxlintrc.json scripts/check-no-global-declarations.mjs && rmdir scripts 2>/dev/null; git status --short
+```
+
+**Result:**
+
+```
+ M ../docs/ai-sessions/2026-09-01_14-08-49Z-preventing-global-shortcuts-in.md
+ M ../docs/ai-sessions/statistics.json
+ D .oxlintrc.json
+ M package-lock.json
+ M package.json
+ D scripts/check-no-global-declarations.mjs
+ D src/modules/platform/.oxlintrc.json
+ D src/modules/product-catalog/.oxlintrc.json
+ D src/modules/product-pricing/.oxlintrc.json
+ D src/modules/sales-fulfilment/.oxlintrc.json
+?? eslint-rules/
+?? eslint.config.js
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 5 todos
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Now run lint to validate the config: 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npm run lint`
+
+Run the new ESLint-based lint script to check config correctness and see any violations
+
+```bash
+npm run lint
+```
+
+**Result:**
+
+```
+
+> retail-operations-portal@0.0.0 lint
+> eslint .
+
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\product-catalog\api\products.ts
+  27:45  error  '_file' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\product-pricing\api\promotions.ts
+  69:51  error  '_reason' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\sales-fulfilment\api\orders.ts
+  21:47  error  '_reason' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\badge.tsx
+  52:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\button.tsx
+  58:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\select.tsx
+  191:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\tabs.tsx
+  82:52  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 7 problems (3 errors, 4 warnings)
+
+Command exited with code 1
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **eslint.config.js**</summary>
+
+@@ lines 46-46 @@
+
+```
+@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npm run lint`
+
+Re-run lint after allowing underscore-prefixed unused params
+
+```bash
+npm run lint
+```
+
+**Result:**
+
+```
+
+> retail-operations-portal@0.0.0 lint
+> eslint .
+
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\badge.tsx
+  52:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\button.tsx
+  58:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\select.tsx
+  191:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\tabs.tsx
+  82:52  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 4 problems (0 errors, 4 warnings)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Same pre-existing warnings as before (oxlint had these too), zero errors. Now let's verify the boundary rules actually catch violations by testing a deep import and a forbidden cross-module direction, then revert. 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` printf 'import \{ x \} from "@/modules/product-pricing/api/promotions";\\nexpor...`
+
+Verify the deep-import boundary rule actually fires on a forbidden deep import
+
+```bash
+printf 'import { x } from "@/modules/product-pricing/api/promotions";\nexport {};\n' > src/modules/product-catalog/__tmp_boundary_test.ts && npx eslint src/modules/product-catalog/__tmp_boundary_test.ts; rm src/modules/product-catalog/__tmp_boundary_test.ts
+```
+
+**Result:**
+
+```
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\product-catalog\__tmp_boundary_test.ts
+  1:10  error  'x' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+  1:19  error  Deep imports into another module's internals are forbidden. Import only the module's public API (e.g. @/modules/product-catalog)  boundaries/dependencies
+
+✖ 2 problems (2 errors, 0 warnings)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Confirmed — the deep-import guard works. Now testing the direction restriction (sales-fulfilment → product-pricing must be forbidden) and the `declare global` rule:  
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` printf 'import \{ x \} from "@/modules/product-pricing";\\nexport \{\};\\n' > src/...`
+
+Verify the cross-module direction rule and the custom declare-global rule both fire correctly
+
+```bash
+printf 'import { x } from "@/modules/product-pricing";\nexport {};\n' > src/modules/sales-fulfilment/__tmp_dir_test.ts && npx eslint src/modules/sales-fulfilment/__tmp_dir_test.ts; rm src/modules/sales-fulfilment/__tmp_dir_test.ts
+printf 'declare global {\n  interface Window { foo: string }\n}\nexport {};\n' > src/modules/platform/__tmp_global_test.ts && npx eslint src/modules/platform/__tmp_global_test.ts; rm src/modules/platform/__tmp_global_test.ts
+```
+
+**Result:**
+
+```
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\sales-fulfilment\__tmp_dir_test.ts
+  1:10  error  'x' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+  1:19  error  sales-fulfilment must not depend on product-pricing. See docs/adr/0000-podzial-na-moduly-domenowe.md  boundaries/dependencies
+
+✖ 2 problems (2 errors, 0 warnings)
+
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\platform\__tmp_global_test.ts
+  1:1  error  `declare global` is forbidden: it bypasses the boundaries/dependencies module boundary rule since no import statement exists for it to see  local/no-declare-global
+
+✖ 1 problem (1 error, 0 warnings)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+All three boundary mechanisms work correctly. Now cleaning up: verify `git status` and run the build to make sure `tsc -b` still passes, then update CODEOWNERS and repo memory. 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` git status --short && echo --- && npx tsc -b --dry 2>&1 | head -20`
+
+Confirm no stray temp files remain and check TypeScript build compatibility
+
+```bash
+git status --short && echo --- && npx tsc -b --dry 2>&1 | head -20
+```
+
+**Result:**
+
+```
+ M ../docs/ai-sessions/2026-09-01_14-08-49Z-preventing-global-shortcuts-in.md
+ M ../docs/ai-sessions/statistics.json
+ D .oxlintrc.json
+ M package-lock.json
+ M package.json
+ D scripts/check-no-global-declarations.mjs
+ D src/modules/platform/.oxlintrc.json
+ D src/modules/product-catalog/.oxlintrc.json
+ D src/modules/product-pricing/.oxlintrc.json
+ D src/modules/sales-fulfilment/.oxlintrc.json
+?? eslint-rules/
+?? eslint.config.js
+---
+08:24:39 - A non-dry build would build project 'C:/Projects/bottega-frontend-architecture-rossmann/retail-operations-portal/tsconfig.app.json'
+
+08:24:39 - A non-dry build would build project 'C:/Projects/bottega-frontend-architecture-rossmann/retail-operations-portal/tsconfig.node.json'
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Clean. Now updating CODEOWNERS to reference the new ESLint files instead of the removed oxlint configs/script: 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="write" data-tool-name="textEditGroup"><details>
+<summary>Edit: **CODEOWNERS**</summary>
+
+@@ lines 9-21 @@
+
+```
+boundaries/dependencies module-boundary rule app-wide,
+# plus the custom local/no-declare-global rule.
+/retail-operations-portal/eslint.config.js @bottega/architecture
+/retail-operations-portal/eslint-rules/ @bottega/architecture
+
+# Wires eslint into `npm run lint` (the CI-enforced check) and pins its dependencies
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `CODEOWNERS`
+
+**Input:**
+
+- endLine: `60`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\.github\CODEOWNERS`
+- startLine: `1`
+
+**Result:**
+
+```
+# Module boundary enforcement (see docs/adr/0000-podzial-na-moduly-domenowe.md).
+# These paths gate the module boundary itself — changes need the listed owner's review,
+# not just any code owner, otherwise the boundary can be silently weakened or bypassed.
+#
+# PLACEHOLDER TEAMS: @bottega/* below are placeholders. Replace with real GitHub
+# usernames/teams before this file has any effect — CODEOWNERS silently no-ops for
+# handles that aren't actual collaborators/teams on the repo.
+
+# Root lint config — defines the boundaries/dependencies module-boundary rule app-wide,
+# plus the custom local/no-declare-global rule.
+/retail-operations-portal/eslint.config.js @bottega/architecture
+/retail-operations-portal/eslint-rules/ @bottega/architecture
+
+# Wires eslint into `npm run lint` (the CI-enforced check) and pins its dependencies.
+/retail-operations-portal/package.json @bottega/architecture
+
+# Public API surface per module — widening these needs the owning team's sign-off.
+/retail-operations-portal/src/modules/product-catalog/index.ts    @bottega/catalog-team
+/retail-operations-portal/src/modules/product-pricing/index.ts   @bottega/pricing-team
+/retail-operations-portal/src/modules/sales-fulfilment/index.ts  @bottega/sales-fulfilment-team
+/retail-operations-portal/src/modules/platform/index.ts         @bottega/platform-team
+
+# Shared code is importable by every module — new exports here bypass boundaries app-wide.
+/retail-operations-portal/src/shared/ @bottega/platform-team
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+This looks coherent. Now updating repo memory to reflect the new ESLint setup: 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="memory"><details>
+<summary>Tool use: **memory**</summary>
+
+Read memory `structure.md`
+
+**Input:**
+
+- command: `view`
+- path: `/memories/repo/structure.md`
+
+**Result:**
+
+```
+Here's the content of /memories/repo/structure.md with line numbers:
+     1	# bottega-frontend-architecture-rossmann repo structure
+     2	
+     3	- Single git repo at workspace root; `retail-operations-portal/` is a nested subfolder with its
+     4	  own `package.json`/`node_modules` (not a separate repo). Terminal cwd can persist as either the
+     5	  workspace root or `retail-operations-portal/` across tool calls in the same session — always
+     6	  `pwd` first if unsure before `cd`-prefixing a command, since a redundant `cd retail-operations-portal`
+     7	  when already there fails silently (newline-separated bash commands don't stop on error) and
+     8	  leaves later relative paths resolving from the wrong place.
+     9	- Docs are canonical source of truth: read `docs/ARCHITECTURE.md` before any architecture work.
+    10	  `docs/adr/`, `docs/context-map/context-map.md` also authoritative. Ignore `./exercises`,
+    11	  `./docs/architecture-reports` (not part of the project).
+    12	- Only linter in `retail-operations-portal` is **oxlint** (no ESLint). It supports nested
+    13	  `.oxlintrc.json` per directory (nearest wins, NOT auto-merged — child must `extends` parent and
+    14	  restate same-key rules) and the `no-restricted-imports` rule (patterns=regex, paths=exact) which
+    15	  is sufficient to enforce module import boundaries without `eslint-plugin-boundaries` (oxlint
+    16	  doesn't support it).
+    17	- oxlint (checked v1.80.0) has NO custom/user-defined rule API and no `no-restricted-syntax`
+    18	  equivalent — only its fixed built-in plugins (react/import/jsdoc/jest/vitest/jsx-a11y/nextjs/
+    19	  react-perf/promise/node/vue/typescript/oxc/unicorn) can be toggled via CLI flags. Anything not
+    20	  covered by a built-in rule (e.g. banning `declare global` ambient blocks, which bypass
+    21	  `no-restricted-imports` since there's no import statement to match) needs a plain script wired
+    22	  into `npm run lint` (see `scripts/check-no-gl
+… (output truncated)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="replace_string_in_file"><details>
+<summary>Tool use: **replace_string_in_file**</summary>
+
+Replacing 17 lines with 26 lines in `structure.md`
+
+**Input:**
+
+- filePath: `/memories/repo/structure.md`
+- newString:
+
+```
+- Linter is **ESLint** (flat config, `retail-operations-portal/eslint.config.js`; oxlint was fully
+  removed 2026-09-02 — no `.oxlintrc.json` files or `oxlint` devDependency remain). `npm run lint`
+  runs `eslint .`. Stack: `@eslint/js` + `typescript-eslint` (unified package, `tseslint.config()`
+  helper) + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` (no flat preset, rule
+  configured manually: `["warn", { allowConstantExport: true }]`) + `eslint-plugin-boundaries`
+  (canonical rule is `boundaries/dependencies`, NOT the deprecated `element-types`/`entry-point`).
+  `@typescript-eslint/no-unused-vars` needed `{ argsIgnorePattern: "^_" }` added to match prior
+  oxlint behavior (codebase uses `_paramName` convention for intentionally-unused params).
+- Module import boundaries (per ADR-0000) enforced via `boundaries/dependencies` in
+  `eslint.config.js`: 7 elements (`product-catalog`, `product-pricing`, `sales-fulfilment`,
+  `platform`, `shared`, `app`, `layout`, each `partialMatch: false` pinned to its exact
+  `src/...` folder). One policy bans deep imports into any of the 4 domain modules' internals
+  (`fileInternalPath: "!index.ts"` + `from: "*"` disallow — same-module internal imports are
+  exempt automatically since `checkInternals` defaults to false). Three more policies encode the
+  directional matrix: `product-pricing` ✗→ `sales-fulfilment`; `sales-fulfilment` ✗→
+  `product-pricing`/`platform`; `platform` ✗→ all 3 domain modules. All verified working via
+  throwaway test files (deep import, wrong direction) that correctly errored, then deleted.
+- `declare global` ambient blocks (which bypass `boundaries/dependencies` since there's no import
+  statement to match) are banned by a custom local ESLint plugin:
+  `retail-operations-portal/eslint-rules/no-declare-global.js`, rule id `local/no-declare-global`,
+  flags `TSModuleDeclaration` nodes with `node.kind === "global"`. Registered as plugin `local` in
+  `eslint.config.js`. (oxlint could never do this — no custom-rule API — hence the ESLint migration.)
+- Module boundary guard files are protected via root `.github/CODEOWNERS` (repo root, not inside
+  `retail-operations-portal/`): `eslint.config.js`, `eslint-rules/`, `package.json` (lint wiring),
+  each module's `index.ts`, and `src/shared/`. Team handles in it are placeholders (`@bottega/*`)
+  — not real GitHub teams yet, so it currently has no actual enforcement effect.
+```
+
+- oldString:
+
+```
+- Only linter in `retail-operations-portal` is **oxlint** (no ESLint). It supports nested
+  `.oxlintrc.json` per directory (nearest wins, NOT auto-merged — child must `extends` parent and
+  restate same-key rules) and the `no-restricted-imports` rule (patterns=regex, paths=exact) which
+  is sufficient to enforce module import boundaries without `eslint-plugin-boundaries` (oxlint
+  doesn't support it).
+- oxlint (checked v1.80.0) has NO custom/user-defined rule API and no `no-restricted-syntax`
+  equivalent — only its fixed built-in plugins (react/import/jsdoc/jest/vitest/jsx-a11y/nextjs/
+  react-perf/promise/node/vue/typescript/oxc/unicorn) can be toggled via CLI flags. Anything not
+  covered by a built-in rule (e.g. banning `declare global` ambient blocks, which bypass
+  `no-restricted-imports` since there's no import statement to match) needs a plain script wired
+  into `npm run lint` (see `scripts/check-no-global-declarations.mjs`), or adding ESLint as a
+  second linter just for that rule (`no-restricted-syntax` + `TSModuleDeclaration[global=true]`)
+  — the latter was declined as of 2026-09-02 to keep oxlint-only.
+- Module boundary guard files are protected via root `.github/CODEOWNERS` (repo root, not inside
+  `retail-operations-portal/`): root + per-module `.oxlintrc.json`, the guard script, `package.json`
+  (lint wiring), each module's `index.ts`, and `src/shared/`. Team handles in it are placeholders
+  (`@bottega/*`) — not real GitHub teams yet, so it currently has no actual enforcement effect.
+```
+
+
+**Result:**
+
+```
+File does not exist: /memories/repo/structure.md. Use the create_file tool to create it, or correct your filepath.
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="memory"><details>
+<summary>Tool use: **memory**</summary>
+
+Updated memory file `structure.md`
+
+**Input:**
+
+- command: `str_replace`
+- new_str:
+
+```
+- Linter is **ESLint** (flat config, `retail-operations-portal/eslint.config.js`; oxlint was fully
+  removed 2026-09-02 — no `.oxlintrc.json` files or `oxlint` devDependency remain). `npm run lint`
+  runs `eslint .`. Stack: `@eslint/js` + `typescript-eslint` (unified package, `tseslint.config()`
+  helper) + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` (no flat preset, rule
+  configured manually: `["warn", { allowConstantExport: true }]`) + `eslint-plugin-boundaries`
+  (canonical rule is `boundaries/dependencies`, NOT the deprecated `element-types`/`entry-point`).
+  `@typescript-eslint/no-unused-vars` needed `{ argsIgnorePattern: "^_" }` added to match prior
+  oxlint behavior (codebase uses `_paramName` convention for intentionally-unused params).
+- Module import boundaries (per ADR-0000) enforced via `boundaries/dependencies` in
+  `eslint.config.js`: 7 elements (`product-catalog`, `product-pricing`, `sales-fulfilment`,
+  `platform`, `shared`, `app`, `layout`, each `partialMatch: false` pinned to its exact
+  `src/...` folder). One policy bans deep imports into any of the 4 domain modules' internals
+  (`fileInternalPath: "!index.ts"` + `from: "*"` disallow — same-module internal imports are
+  exempt automatically since `checkInternals` defaults to false). Three more policies encode the
+  directional matrix: `product-pricing` ✗→ `sales-fulfilment`; `sales-fulfilment` ✗→
+  `product-pricing`/`platform`; `platform` ✗→ all 3 domain modules. All verified working via
+  throwaway test files (deep import, wrong direction) that correctly errored, then deleted.
+- `declare global` ambient blocks (which bypass `boundaries/dependencies` since there's no import
+  statement to match) are banned by a custom local ESLint plugin:
+  `retail-operations-portal/eslint-rules/no-declare-global.js`, rule id `local/no-declare-global`,
+  flags `TSModuleDeclaration` nodes with `node.kind === "global"`. Registered as plugin `local` in
+  `eslint.config.js`. (oxlint could never do this — no custom-rule API — hence the ESLint migration.)
+- Module boundary guard files are protected via root `.github/CODEOWNERS` (repo root, not inside
+  `retail-operations-portal/`): `eslint.config.js`, `eslint-rules/`, `package.json` (lint wiring),
+  each module's `index.ts`, and `src/shared/`. Team handles in it are placeholders (`@bottega/*`)
+  — not real GitHub teams yet, so it currently has no actual enforcement effect.
+```
+
+- old_str:
+
+```
+- Only linter in `retail-operations-portal` is **oxlint** (no ESLint). It supports nested
+  `.oxlintrc.json` per directory (nearest wins, NOT auto-merged — child must `extends` parent and
+  restate same-key rules) and the `no-restricted-imports` rule (patterns=regex, paths=exact) which
+  is sufficient to enforce module import boundaries without `eslint-plugin-boundaries` (oxlint
+  doesn't support it).
+- oxlint (checked v1.80.0) has NO custom/user-defined rule API and no `no-restricted-syntax`
+  equivalent — only its fixed built-in plugins (react/import/jsdoc/jest/vitest/jsx-a11y/nextjs/
+  react-perf/promise/node/vue/typescript/oxc/unicorn) can be toggled via CLI flags. Anything not
+  covered by a built-in rule (e.g. banning `declare global` ambient blocks, which bypass
+  `no-restricted-imports` since there's no import statement to match) needs a plain script wired
+  into `npm run lint` (see `scripts/check-no-global-declarations.mjs`), or adding ESLint as a
+  second linter just for that rule (`no-restricted-syntax` + `TSModuleDeclaration[global=true]`)
+  — the latter was declined as of 2026-09-02 to keep oxlint-only.
+- Module boundary guard files are protected via root `.github/CODEOWNERS` (repo root, not inside
+  `retail-operations-portal/`): root + per-module `.oxlintrc.json`, the guard script, `package.json`
+  (lint wiring), each module's `index.ts`, and `src/shared/`. Team handles in it are placeholders
+  (`@bottega/*`) — not real GitHub teams yet, so it currently has no actual enforcement effect.
+```
+
+- path: `/memories/repo/structure.md`
+
+**Result:**
+
+```
+The memory file has been edited. Here's the result of running `cat -n` on a snippet of /memories/repo/structure.md:
+     8	  leaves later relative paths resolving from the wrong place.
+     9	- Docs are canonical source of truth: read `docs/ARCHITECTURE.md` before any architecture work.
+    10	  `docs/adr/`, `docs/context-map/context-map.md` also authoritative. Ignore `./exercises`,
+    11	  `./docs/architecture-reports` (not part of the project).
+    12	- Linter is **ESLint** (flat config, `retail-operations-portal/eslint.config.js`; oxlint was fully
+    13	  removed 2026-09-02 — no `.oxlintrc.json` files or `oxlint` devDependency remain). `npm run lint`
+    14	  runs `eslint .`. Stack: `@eslint/js` + `typescript-eslint` (unified package, `tseslint.config()`
+    15	  helper) + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` (no flat preset, rule
+    16	  configured manually: `["warn", { allowConstantExport: true }]`) + `eslint-plugin-boundaries`
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Memory updated successfully. Migration complete:
+
+- **Replaced oxlint with ESLint** (flat config at `retail-operations-portal/eslint.config.js`), `npm run lint` → `eslint .`.
+- **`eslint-plugin-boundaries`** configured with 7 elements and 4 `boundaries/dependencies` policies reproducing the exact old oxlint matrix (deep-import ban + the 3 directional restrictions) — verified with live test files that correctly errored.
+- **Custom local plugin** `retail-operations-portal/eslint-rules/no-declare-global.js` bans `declare global` (impossible in oxlint) — verified firing correctly.
+- Deleted all 5 `.oxlintrc.json` files and the now-redundant `scripts/check-no-global-declarations.mjs`.
+- Updated `CODEOWNERS` to protect `eslint.config.js`/`eslint-rules/` instead of the old files.
+- `npm run lint` passes with 0 errors (4 pre-existing shadcn `react-refresh` warnings, same as before).
+- Repo memory updated to reflect the new setup.
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Completed: *Remove oxlint dependency and config files* (1/5)
+</details></tool-use>
+
+---
+
+_**User (2026-09-02 06:26:58Z)**_
+
+test it
+
+---
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file"><details>
+<summary>Tool use: **read_file**</summary>
+
+Read `package.json`
+
+**Input:**
+
+- endLine: `60`
+- filePath: `c:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\package.json`
+- startLine: `1`
+
+**Result:**
+
+```
+{
+  "name": "retail-operations-portal",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.7.0",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@reduxjs/toolkit": "^2.12.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.37.0",
+    "next-themes": "^0.4.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-redux": "^9.3.0",
+    "react-router-dom": "^7.18.3",
+    "shadcn": "^4.19.0",
+    "sonner": "^2.0.8",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "eslint": "^10.9.1",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^7.2.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.69.0",
+    "vite": "^8.2.2"
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Looks fine (just formatted/sorted by `npm i`). Running the lint script to test: 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` npm run lint`
+
+Run the ESLint config to verify it still works after npm i
+
+```bash
+npm run lint
+```
+
+**Result:**
+
+```
+
+> retail-operations-portal@0.0.0 lint
+> eslint .
+
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\badge.tsx
+  52:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\button.tsx
+  58:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\select.tsx
+  191:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\shared\components\ui\tabs.tsx
+  82:52  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 4 problems (0 errors, 4 warnings)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Same 4 pre-existing warnings, 0 errors — config still works after `npm i`. Re-verifying the boundary and custom rules still fire (in case dependency versions shifted): 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` printf 'import \{ x \} from "@/modules/product-pricing/api/promotions";\\nexpor...`
+
+Re-verify deep-import, direction, and declare-global boundary rules still fire after npm i
+
+```bash
+printf 'import { x } from "@/modules/product-pricing/api/promotions";\nexport {};\n' > src/modules/product-catalog/__tmp_deep.ts
+printf 'import { x } from "@/modules/product-pricing";\nexport {};\n' > src/modules/sales-fulfilment/__tmp_dir.ts
+printf 'declare global {\n  interface Window { foo: string }\n}\nexport {};\n' > src/modules/platform/__tmp_global.ts
+npx eslint src/modules/product-catalog/__tmp_deep.ts src/modules/sales-fulfilment/__tmp_dir.ts src/modules/platform/__tmp_global.ts
+rm src/modules/product-catalog/__tmp_deep.ts src/modules/sales-fulfilment/__tmp_dir.ts src/modules/platform/__tmp_global.ts
+```
+
+**Result:**
+
+```
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\platform\__tmp_global.ts
+  1:1  error  `declare global` is forbidden: it bypasses the boundaries/dependencies module boundary rule since no import statement exists for it to see  local/no-declare-global
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\product-catalog\__tmp_deep.ts
+  1:10  error  'x' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+  1:19  error  Deep imports into another module's internals are forbidden. Import only the module's public API (e.g. @/modules/product-catalog)  boundaries/dependencies
+
+C:\Projects\bottega-frontend-architecture-rossmann\retail-operations-portal\src\modules\sales-fulfilment\__tmp_dir.ts
+  1:10  error  'x' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+  1:19  error  sales-fulfilment must not depend on product-pricing. See docs/adr/0000-podzial-na-moduly-domenowe.md  boundaries/dependencies
+
+✖ 5 problems (5 errors, 0 warnings)
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+All rules still fire correctly after `npm i`. Confirming the temp files were cleaned up and tree is otherwise unchanged: 
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="generic" data-tool-name="run_in_terminal"><details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+Running ` git status --short`
+
+Confirm no stray test files remain
+
+```bash
+git status --short
+```
+
+**Result:**
+
+```
+ M ../.github/CODEOWNERS
+ M ../docs/ai-sessions/2026-09-01_14-08-49Z-preventing-global-shortcuts-in.md
+ M ../docs/ai-sessions/statistics.json
+ D .oxlintrc.json
+ M package-lock.json
+ M package.json
+ D scripts/check-no-global-declarations.mjs
+ D src/modules/platform/.oxlintrc.json
+ D src/modules/product-catalog/.oxlintrc.json
+ D src/modules/product-pricing/.oxlintrc.json
+ D src/modules/sales-fulfilment/.oxlintrc.json
+?? eslint-rules/
+?? eslint.config.js
+```
+</details></tool-use>
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+Clean — no leftover temp files.
+
+Verified the ESLint migration works end-to-end after `npm i`:
+- `npm run lint` → 0 errors, only the 4 pre-existing shadcn fast-refresh warnings.
+- Deep-import ban, cross-module direction rules, and the custom `local/no-declare-global` rule all still correctly flag violations in throwaway test files (cleaned up after).
+- Working tree is clean aside from the intended migration changes. 
+
+Task complete — the ESLint migration is fully validated and working as expected.
+
+_**Agent (copilot/claude-sonnet-5)**_
+
+<tool-use data-tool-type="task" data-tool-name="manage_todo_list"><details>
+<summary>Tool use: **manage_todo_list**</summary>
+
+Created 1 todo
+</details></tool-use>

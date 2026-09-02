@@ -6,19 +6,12 @@
 # usernames/teams before this file has any effect — CODEOWNERS silently no-ops for
 # handles that aren't actual collaborators/teams on the repo.
 
-# Root lint config — defines the no-restricted-imports module-boundary rule app-wide.
-/retail-operations-portal/.oxlintrc.json @bottega/architecture
+# Root lint config — defines the boundaries/dependencies module-boundary rule app-wide,
+# plus the custom local/no-declare-global rule.
+/retail-operations-portal/eslint.config.js @bottega/architecture
+/retail-operations-portal/eslint-rules/ @bottega/architecture
 
-# Per-module lint overrides — must keep `extends` the root config (oxlint doesn't auto-merge).
-/retail-operations-portal/src/modules/product-catalog/.oxlintrc.json    @bottega/architecture @bottega/catalog-team
-/retail-operations-portal/src/modules/product-pricing/.oxlintrc.json   @bottega/architecture @bottega/pricing-team
-/retail-operations-portal/src/modules/sales-fulfilment/.oxlintrc.json  @bottega/architecture @bottega/sales-fulfilment-team
-/retail-operations-portal/src/modules/platform/.oxlintrc.json         @bottega/architecture @bottega/platform-team
-
-# Ambient-global guard (blocks `declare global` bypassing the import-graph lint rule).
-/retail-operations-portal/scripts/check-no-global-declarations.mjs @bottega/architecture
-
-# Wires oxlint + the guard script into `npm run lint` (the CI-enforced check).
+# Wires eslint into `npm run lint` (the CI-enforced check) and pins its dependencies.
 /retail-operations-portal/package.json @bottega/architecture
 
 # Public API surface per module — widening these needs the owning team's sign-off.
