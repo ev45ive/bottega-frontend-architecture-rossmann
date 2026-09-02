@@ -63,8 +63,9 @@ to `CategoryRef`/`listCategoryRefs`/`s.categoryRefs.items`:
 1. `npm run lint` — 0 errors (4 pre-existing `react-refresh` warnings in unrelated `shared/components/ui`
    files). `boundaries/dependencies` rule passes.
 2. `npx tsc --noEmit -p tsconfig.app.json` — no errors.
-3. Manual verification of `/pricing-rules` and `/promotions/new` — not performed in this session (no
-   dev server run); recommend a quick manual check before merging.
+3. Manual verification via dev server + browser: `/pricing-rules` table and its "Nowa reguła"
+   dialog category dropdown populate correctly; `/promotions/new` step 2 (Reguły/ceny) and its
+   embedded "Nowa reguła" dialog category dropdown also populate correctly.
 4. Grepped `product-pricing` for `Category(?!Ref)` — only `categoryId`/`categoryName` (the unbranded
    `ID` field/local var) remain, no `Category` aggregate type import. Full-aggregate dependency is gone.
 
