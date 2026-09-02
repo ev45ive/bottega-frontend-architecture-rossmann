@@ -30,12 +30,21 @@ async function mountRemotes() {
   const container = document.getElementById("remotes");
 
   // const { mount } = await loadRemote("remoteJs/Widget");
-  
-  const { CartPanel } = await loadRemote("remoteReact/Widget");
-  const { App } = await import("./App");
+  try {
+    const VueWebComponent = await loadRemote("remoteVue/WebComponent");
+  } catch (e) {
+    console.log("Remote Error ", e);
+  }
 
-  if (container) {
-    createRoot(container).render(React.createElement(App, { CartPanel }));
+  try {
+    const { CartPanel } = await loadRemote("remoteReact/Widget");
+    const { App } = await import("./App");
+
+    if (container) {
+      createRoot(container).render(React.createElement(App, { CartPanel }));
+    }
+  } catch (e) {
+    console.log("Remote Error ", e);
   }
 
   const { default: WebComponent } = await loadRemote(

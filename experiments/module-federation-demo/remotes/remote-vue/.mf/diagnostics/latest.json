@@ -1,0 +1,10 @@
+{
+  "latestErrorEvent": {
+    "code": "TYPE-001",
+    "message": "Failed to generate type declaration. Execute the below cmd to reproduce and fix the error. #TYPE-001\nargs: {\"cmd\":\"\\\"C:\\\\\\\\Program Files\\\\\\\\nodejs\\\\\\\\node.exe\\\" C:\\\\Projects\\\\bottega-architektura-mf-materiały\\\\experiments\\\\minimal-webpack-federation\\\\node_modules\\\\typescript\\\\bin\\\\tsc --project C:\\\\Projects\\\\bottega-architektura-mf-materiały\\\\experiments\\\\minimal-webpack-federation\\\\remotes\\\\remote-vue\\\\node_modules\\\\.federation\\\\tsconfig.ab7ee9a3fc82d95f916b21906c4c28cd.json\"}\nView the docs to see how to solve: https://module-federation.io/guide/troubleshooting/type#type-001",
+    "args": {
+      "cmd": "\"C:\\\\Program Files\\\\nodejs\\\\node.exe\" C:\\Projects\\bottega-architektura-mf-materiały\\experiments\\minimal-webpack-federation\\node_modules\\typescript\\bin\\tsc --project C:\\Projects\\bottega-architektura-mf-materiały\\experiments\\minimal-webpack-federation\\remotes\\remote-vue\\node_modules\\.federation\\tsconfig.ab7ee9a3fc82d95f916b21906c4c28cd.json"
+    },
+    "timestamp": 1788109543282
+  }
+}
