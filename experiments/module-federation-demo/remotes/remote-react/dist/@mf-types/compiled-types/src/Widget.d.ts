@@ -1,2 +1,6 @@
 import React from "react";
-export declare function CartPanel(): React.JSX.Element;
+type Props = {
+    message: string;
+};
+export declare function CartPanel({ message }: Props): React.JSX.Element;
+export {};

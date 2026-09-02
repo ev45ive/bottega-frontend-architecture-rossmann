@@ -27,30 +27,30 @@ async function mountRemotes() {
     Object.entries(remoteUrls).map(([name, entry]) => ({ name, entry })),
   );
 
-  // const { mount } = await loadRemote("remoteJs/Widget");
-
-  const { CartPanel } = await loadRemote("remoteReact/Widget");
-
   const container = document.getElementById("remotes");
+  
+  // const { mount } = await loadRemote("remoteJs/Widget");
+  // const { CartPanel } = await loadRemote("remoteReact/Widget");
+  const { default: WebComponent } = await loadRemote("remoteReact/WebComponent");
 
-  if (container) {
-    createRoot(container).render(React.createElement(CartPanel));
-  }
+  // if (container) {
+  //   createRoot(container).render(React.createElement(CartPanel));
+  // }
 
-  // if (!container) return;
-  // container.innerHTML = `
-  //   <remote-js-widget label="From shell-dynamic"></remote-js-widget>
-  //   <div>
-  //     <p><strong>React bridge:</strong> well-known vs. hand-rolled</p>
-  //     <remote-react-widget></remote-react-widget>
-  //     <remote-react-widget-simple></remote-react-widget-simple>
-  //   </div>
-  //   <div>
-  //     <p><strong>Vue bridge:</strong> well-known vs. hand-rolled</p>
-  //     <remote-vue-widget></remote-vue-widget>
-  //     <remote-vue-widget-simple></remote-vue-widget-simple>
-  //   </div>
-  // `;
+
+  if (!container) return;
+  container.innerHTML = `
+  
+    <div>
+      <p><strong>React bridge:</strong> 
+      <remote-react-widget message="Hey from shell"></remote-react-widget> 
+    </div>
+    <div>
+      <p><strong>Vue bridge:</strong> well-known vs. hand-rolled</p>
+      <remote-vue-widget></remote-vue-widget>
+      <remote-vue-widget-simple></remote-vue-widget-simple>
+    </div>
+  `;
 }
 
 mountRemotes();

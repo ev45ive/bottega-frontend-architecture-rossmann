@@ -22,7 +22,7 @@ module.exports = {
     static: { directory: path.resolve(__dirname, 'public') },
   },
   output: {
-    publicPath: 'http://localhost:4010/',
+    publicPath: 'http://localhost:4000/',
     path: path.resolve(__dirname, 'dist'),
   },
   resolve: {

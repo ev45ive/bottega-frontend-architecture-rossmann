@@ -1,5 +1,9 @@
 import React from "react";
 
-export function CartPanel() {
-  return <div>Cart panel</div>;
+type Props = {
+  message: string;
+};
+
+export function CartPanel({ message = "" }: Props) {
+  return <div>Cart panel - {message}</div>;
 }

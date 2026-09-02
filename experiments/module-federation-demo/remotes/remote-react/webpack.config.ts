@@ -42,6 +42,7 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
       filename: "remoteEntry.js",
       exposes: {
         "./Widget": "./src/Widget.tsx",
+        "./WebComponent": "./src/WebComponent.tsx",
       },
       dts: {
         generateTypes: true,
